@@ -1,0 +1,19 @@
+debug: 0
+worldRestrict: false
+fill-emptier-first: false
+proximity: 0
+proximity-exceptions:
+  example: 40
+  anotherExample: 150
+customGroups:
+  IRON_TOOLS:
+  - 256
+  - 257
+  - 258
+  BLUE_WOOL:
+  - '35:3'
+  - '35:9'
+  - '35:11'
+  LAVAFURNACE:
+  - 14
+  

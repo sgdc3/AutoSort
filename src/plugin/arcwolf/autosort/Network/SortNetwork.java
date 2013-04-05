@@ -1,0 +1,161 @@
+package plugin.arcwolf.autosort.Network;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
+
+import plugin.arcwolf.autosort.AutoSort;
+import plugin.arcwolf.autosort.Util;
+
+public class SortNetwork {
+
+    /*
+     * DepositChest
+     *      Chest / Double
+     *      TrapChest / Double
+     *      DropSign
+     *      Hopper
+     *      Furnace / Burning Furnace
+     *      
+     * WithdrawChest
+     *      Chest
+     *      
+     * SortChest
+     *      Chest / Double
+     *      TrapChest / Double
+     *      Dispenser
+     *      Dropper
+     *      Hopper
+     */
+
+    public String owner = "";
+    public List<String> members = new ArrayList<String>();
+    public String netName = "";
+    public String world = "";
+
+    public List<SortChest> sortChests = new ArrayList<SortChest>();
+
+    /**
+     * 
+     * @param owner
+     * @param netName
+     * @param world
+     */
+    public SortNetwork(String owner, String netName, String world) {
+        this.owner = owner;
+        this.netName = netName;
+        this.world = world;
+    }
+
+    public SortChest findSortChest(Block block) {
+        for(SortChest sc : sortChests) {
+            if (sc.block.equals(block)) return sc;
+        }
+        return null;
+    }
+
+    public boolean sortItem(ItemStack item) {
+        if (AutoSort.emptiesFirst) // Sort Chests by emptiest first
+            Collections.sort(sortChests, new amountComparator(item));
+        return sortItem(item, 4);
+    }
+
+    public InventoryHolder findItemStack(ItemStack item) {
+        InventoryHolder invHolder = null;
+        for(SortChest sc : sortChests) {
+            invHolder = Util.getInventoryHolder(sc.block);
+            sc.block.getWorld().getChunkAt(sc.block).load();
+            if (invHolder != null) {
+                sc.block.getChunk().load();
+                if (sc.block.getChunk().isLoaded()) {
+                    Inventory inv = invHolder.getInventory();
+                    if (inv.first(item.getType()) != -1) return invHolder;
+                }
+            }
+        }
+        return null;
+    }
+
+    public boolean sortItem(ItemStack item, int minPriority) {
+        for(int priority = 1; priority <= minPriority; priority++) {
+            for(SortChest chest : sortChests) {
+                if (chest.priority == priority) {
+                    for(ItemStack mat : chest.matList) {
+                        boolean ignoreData = true;
+                        if (AutoSort.customMatGroups.containsKey(chest.signText)) {
+                            for(ItemStack i : AutoSort.customMatGroups.get(chest.signText)) {
+                                if (i.getData().getData() > 0) {
+                                    ignoreData = false;
+                                }
+                            }
+                        }
+                        if (chest.disregardDamage && ignoreData) {
+                            if (mat.getType().equals(item.getType())) {
+                                if (moveItemToChest(item, chest)) return true;
+                            }
+                        }
+                        else {
+                            if (mat.getType().equals(item.getType()) && mat.getData().equals(item.getData())) {
+                                if (moveItemToChest(item, chest)) return true;
+                            }
+                        }
+                    }
+                }
+            }
+            for(SortChest chest : sortChests) { // ? Think this sorts MISC items into MISC group. References to Material AIR are returned from MISC in SortChest Class
+                if (chest.priority == priority) {
+                    if (chest.matList.size() == 1 && chest.matList.get(0).getType().equals(Material.AIR)) {
+                        if (moveItemToChest(item, chest)) return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean moveItemToChest(ItemStack item, SortChest chest) {
+        InventoryHolder invHolder = Util.getInventoryHolder(chest.block);
+        if (invHolder != null) {
+            chest.block.getChunk().load();
+            if (chest.block.getChunk().isLoaded()) {
+                Inventory inv = invHolder.getInventory();
+                try {
+                    if (item != null) {
+                        Map<Integer, ItemStack> couldntFit = inv.addItem(item);
+                        if (couldntFit.isEmpty()) { return true; }
+                    }
+                } catch (Exception e) {
+                    //e.printStackTrace();
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
+
+    public class amountComparator implements Comparator<Object> {
+
+        private ItemStack item;
+
+        public amountComparator(ItemStack item) {
+            this.item = item;
+        }
+
+        @Override
+        public int compare(Object o1, Object o2) {
+            SortChest TypeN1 = (SortChest) o1;
+            SortChest TypeN2 = (SortChest) o2;
+            Integer TypeN1Value = TypeN1.getItemAmount(item);
+            Integer TypeN2Value = TypeN2.getItemAmount(item);
+            return TypeN1Value.compareTo(TypeN2Value);
+        }
+    }
+}

@@ -1,0 +1,77 @@
+name: AutoSort
+authors: [ArcWolf, TheJuggernaut0]
+main: plugin.arcwolf.autosort.AutoSort
+version: 0.7
+description: A chest inventory sorting plugin. Originally created by TheJuggernaut0. Updated / maintained by ArcWolf.
+commands:
+  autosort:
+    description: Sort your entire inventory
+    permission: autosort.autosort
+    usage: /autosort [networkName]
+  asreload:
+    description: Reload AutoSort
+    permission: autosort.reload
+    usage: /asreload
+  addasgroup:
+    description: Add a custom AutoSort material group
+    permission: autosort.addasgroup
+    usage: /addasgroup [groupName] [materialIDs...]
+  modasgroup:
+    description: Modify an existing AutoSort material group
+    permission: autosort.modasgroup
+    usage: /modasgroup [groupName] [materialIDS...]
+  delasgroup:
+    description: Deletes an AutoSort material group
+    permission: autosort.delasgroup
+    usage: /delasgroup [groupName]
+  ascleanup:
+    description: Cleanup AutoSort networks
+    permission: autosort.ascleanup
+    usage: /ascleanup
+  addtonet:
+    description: Add players to an AutoSort network
+    permission: autosort.addtonet
+    usage: /addtonet [netName] [players...]
+  listasgroups:
+    description: List all AutoSort material groups defined on this server
+    permission: autosort.listasgroups
+    usage: /listasgroups
+  remfromnet:
+    description: Removes players from a AutoSort network
+    permission: autosort.remfromnet
+    usage: /remfromnet [netName] [players...]
+permissions:
+  autosort.*:
+    children:
+      autosort.use: true
+      autosort.use.withdraw: true
+      autosort.create: true
+      autosort.override: true
+      autosort.autosort: true
+      autosort.reload: true
+      autosort.addasgroup: true
+      autosort.modasgroup: true
+      autosort.delasgroup: true
+      autosort.ascleanup: true
+      autosort.addtonet: true
+      autosort.remfromnet: true
+      autosort.ignoreproximity: true
+      autosort.listasgroups: true
+      
+  autosort.common: 
+    children:
+      autosort.use: true
+      autosort.use.withdraw: true
+      autosort.create: true
+      autosort.autosort: true
+      autosort.addtonet: true
+      autosort.remfromnet: true
+      autosort.listasgroups: true
+  autosort.create:
+    children:
+      autosort.use: true
+      autosort.use.withdraw: true
+  autosort.addasgroup:
+    children:
+      autosort.modasgroup: true
+      autosort.delasgroup: true
