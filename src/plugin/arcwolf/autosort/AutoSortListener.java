@@ -296,6 +296,11 @@ public class AutoSortListener implements Listener {
                         storageBlock = getDirection(option.split(":")[1], signBlock);
                     }
                     if (storageBlock.getType().equals(Material.CHEST)) { //TODO Withdraw Chest
+                        if(isInNetwork(storageBlock)){
+                            player.sendMessage(ChatColor.RED + "You can't add this chest, it is already in a network!");
+                            event.setCancelled(true);
+                            return;
+                        }
                         SortNetwork sortNetwork = plugin.findNetwork(player.getName(), netName);
                         if (sortNetwork == null && plugin.playerCanUseCommand(player, "autosort.create"))
                             sortNetwork = createNetwork(player, netName);
@@ -387,6 +392,11 @@ public class AutoSortListener implements Listener {
 
                     if (mat.equalsIgnoreCase("")) { //TODO Deposit Chest
                         if (Util.isValidDepositWithdrawBlock(storageBlock)) {
+                            if(isInNetwork(storageBlock)){
+                                player.sendMessage(ChatColor.RED + "You can't add this chest, it is already in a network!");
+                                event.setCancelled(true);
+                                return;
+                            }
                             SortNetwork sortNetwork = plugin.findNetwork(player.getName(), netName);
                             if (sortNetwork == null) {
                                 if (plugin.playerCanUseCommand(player, "autosort.create"))
@@ -448,6 +458,11 @@ public class AutoSortListener implements Listener {
                             }
                         }
                         if (Util.isValidInventoryBlock(storageBlock)) {
+                            if(isInNetwork(storageBlock)){
+                                player.sendMessage(ChatColor.RED + "You can't add this chest, it is already in a network!");
+                                event.setCancelled(true);
+                                return;
+                            }
                             boolean dd = !mat.contains(":");
                             SortNetwork sortNetwork = plugin.findNetwork(player.getName(), netName);
                             if (sortNetwork == null) {
@@ -917,7 +932,7 @@ public class AutoSortListener implements Listener {
         SortNetwork net = plugin.findNetwork(settings.owner, settings.netName);
         for(SortChest chest : net.sortChests) {
             Inventory inv = Util.getInventoryHolder(chest.block).getInventory();
-            if (inv == null) return false;
+            if (inv == null) continue;
             for(ItemStack item : inv) {
                 if (item != null) {
                     int itemId = item.getTypeId();
@@ -1261,6 +1276,10 @@ public class AutoSortListener implements Listener {
         }
         player.sendMessage(ChatColor.BLUE + "New network " + ChatColor.GRAY + netName + ChatColor.BLUE + " by " + ChatColor.GRAY + owner + ChatColor.BLUE + " created in " + ChatColor.GRAY + newNet.world + ChatColor.BLUE + ".");
         return newNet;
+    }
+    
+    private boolean isInNetwork(Block storageBlock) {
+        return findNetworkBySortChest(storageBlock) != null || findNetworkBySortChest(doubleChest(storageBlock)) != null || plugin.withdrawChests.containsKey(storageBlock) || plugin.withdrawChests.containsKey(doubleChest(storageBlock)) || plugin.depositChests.containsKey(storageBlock) || plugin.depositChests.containsKey(doubleChest(storageBlock));
     }
 
     private class IntegerComparator implements Comparator<Object> {
