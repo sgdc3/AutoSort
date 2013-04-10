@@ -324,7 +324,7 @@ public class AutoSortListener implements Listener {
                                     plugin.withdrawChests.put(storageBlock, new NetworkItem(sortNetwork.netName, sortNetwork.owner, storageBlock, signBlock));
                                     event.setLine(1, "§fOpen Chest");
                                     event.setLine(2, "§fTo Withdraw");
-                                    player.sendMessage(ChatColor.BLUE + "Withdraw chest added to network " + netName + ".");
+                                    player.sendMessage(ChatColor.AQUA + "Withdraw chest added to network " + netName + ".");
                                 }
                                 else {
                                     player.sendMessage(ChatColor.RED + "You can only place chests within " + prox + " blocks of the original chest!");
@@ -337,7 +337,7 @@ public class AutoSortListener implements Listener {
                             }
                         }
                         else {
-                            player.sendMessage("Already Exists on network");
+                            player.sendMessage(ChatColor.RED + "Already Exists on network");
                             event.setCancelled(true);
                             return;
                         }
@@ -492,7 +492,7 @@ public class AutoSortListener implements Listener {
                                         if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
                                             player.sendMessage(ChatColor.AQUA + "Deposit chest added to " + sortNetwork.netName + ".");
                                             sortNetwork.sortChests.add(new SortChest(storageBlock, signBlock, mat, priority, dd));
-                                            player.sendMessage(ChatColor.BLUE + "Sort chest with material(s) " + mat + " and priority " + priority + " added to network " + netName + ".");
+                                            player.sendMessage(ChatColor.AQUA + "Sort chest with material(s) " + mat + " and priority " + priority + " added to network " + netName + ".");
                                         }
                                         else {
                                             player.sendMessage(ChatColor.RED + "You can only place chests within " + prox + " blocks of the original chest!");
@@ -500,7 +500,7 @@ public class AutoSortListener implements Listener {
                                         }
                                     }
                                     else {
-                                        player.sendMessage("Already Exists on network");
+                                        player.sendMessage(ChatColor.RED + "Already Exists on network");
                                         event.setCancelled(true);
                                     }
                                 }
@@ -702,7 +702,7 @@ public class AutoSortListener implements Listener {
                 }
             }
             else if (lines[0].startsWith("#")) {
-                // Deposit or Sort Chest
+                // Withdraw Chest
                 SortNetwork sortNetwork = null;
                 NetworkItem netItem = plugin.findNetworkItemBySign(block);
                 if (netItem != null) {
@@ -713,7 +713,7 @@ public class AutoSortListener implements Listener {
 
                 if (sortNetwork.owner.equals(pName)) {
                     if (plugin.withdrawChests.remove(storageBlock) != null) {
-                        event.getPlayer().sendMessage(ChatColor.BLUE + "Deposit chest removed.");
+                        event.getPlayer().sendMessage(ChatColor.BLUE + "Withdraw chest removed.");
                         return;
                     }
                 }
@@ -728,7 +728,6 @@ public class AutoSortListener implements Listener {
         else if (Util.isValidInventoryBlock(block)) {
             SortNetwork sortNetwork = findNetworkBySortChest(block);
             if (sortNetwork == null) {
-                System.out.println("inside");
                 sortNetwork = findNetworkBySortChest(doubleChest(block));
                 block = doubleChest(block);
             }
@@ -765,7 +764,7 @@ public class AutoSortListener implements Listener {
                         chestSign.update();
                     }
                     plugin.depositChests.remove(block);
-                    event.getPlayer().sendMessage(ChatColor.BLUE + "Drop chest removed.");
+                    event.getPlayer().sendMessage(ChatColor.BLUE + "Deposit chest removed.");
                     return;
                 }
                 else {
