@@ -55,6 +55,7 @@ public class AutoSortListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockPlace(BlockPlaceEvent event) {
+        if (event.isCancelled()) return;
         Block block = event.getBlock();
         Player player = event.getPlayer();
         if (block.getType().equals(Material.HOPPER)) {
@@ -99,6 +100,7 @@ public class AutoSortListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onItemSpawn(ItemSpawnEvent event) {
+        if (event.isCancelled()) return;
         Item item = (Item) event.getEntity();
         plugin.items.add(item);
     }
@@ -146,7 +148,7 @@ public class AutoSortListener implements Listener {
         Block block = event.getClickedBlock();
         Player player = event.getPlayer();
         String pName = player.getName();
-        if (Util.isValidInventoryBlock(block) || isValidSign(block)) {
+        if (Util.isValidInventoryBlock(player, block, false) || isValidSign(block)) {
             NetworkItem ni = null;
             if (plugin.withdrawChests.containsKey(block))
                 ni = plugin.withdrawChests.get(block);
@@ -279,71 +281,59 @@ public class AutoSortListener implements Listener {
         }
     }
 
-    // TODO Messy will need to clean this up at some point. Nested IF hell ahead...
+    // TODO Thats a little better... still think it could use a little more cleanup though...
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onSignChange(SignChangeEvent event) {
         if (event.isCancelled()) return;
         String[] lines = event.getLines();
+        String netName = "";
         Player player = event.getPlayer();
+        String owner = player.getName();
+
+        SortNetwork sortNetwork = null;
+        if (lines[0].startsWith("#") || lines[0].startsWith("*")) {
+            netName = lines[0].substring(1);
+            sortNetwork = plugin.findNetwork(player.getName(), netName);
+            if (sortNetwork == null && plugin.playerCanUseCommand(player, "autosort.create"))
+                sortNetwork = createNetwork(player, netName);
+            else if (!plugin.playerCanUseCommand(player, "autosort.create")) {
+                player.sendMessage(ChatColor.RED + "You don't have permission to create AutoSort networks!" + plugin.playerCanUseCommand(player, "autosort.create"));
+                return;
+            }
+        }
+        if (netName.equals("")) return;
+
         if (event.getBlock().getType().equals(Material.WALL_SIGN)) {
             Block signBlock = event.getBlock();
-            if (lines[0].startsWith("#")) {
+            if (lines[0].startsWith("#")) { //TODO Withdraw Chest
                 if (plugin.playerCanUseCommand(player, "autosort.use.withdraw")) {
-                    String netName = lines[0].substring(1, lines[0].length());
                     String option = lines[3].toUpperCase();
                     Block storageBlock = getDirection("", signBlock);
                     if (option.startsWith("D:")) {
                         storageBlock = getDirection(option.split(":")[1], signBlock);
                     }
-                    if (storageBlock.getType().equals(Material.CHEST)) { //TODO Withdraw Chest
-                        if(isInNetwork(storageBlock)){
-                            player.sendMessage(ChatColor.RED + "You can't add this chest, it is already in a network!");
-                            event.setCancelled(true);
-                            return;
-                        }
-                        SortNetwork sortNetwork = plugin.findNetwork(player.getName(), netName);
-                        if (sortNetwork == null && plugin.playerCanUseCommand(player, "autosort.create"))
-                            sortNetwork = createNetwork(player, netName);
-                        else if (!plugin.playerCanUseCommand(player, "autosort.create")) {
-                            player.sendMessage(ChatColor.RED + "You don't have permission to create AutoSort networks!" + plugin.playerCanUseCommand(player, "autosort.create"));
-                            return;
-                        }
-                        if (!plugin.withdrawChests.containsKey(storageBlock)) {
-                            if (!AutoSort.worldRestrict || sortNetwork.world.equalsIgnoreCase(signBlock.getWorld().getName().toLowerCase())) {
-                                int prox;
-                                if (AutoSort.proximities.containsKey(netName)) {
-                                    prox = AutoSort.proximities.get(netName);
-                                }
-                                else {
-                                    prox = AutoSort.defaultProx;
-                                }
-                                Location origin = null;
-                                if (sortNetwork.sortChests.size() > 0) origin = sortNetwork.sortChests.get(0).block.getLocation();
-                                Location here = storageBlock.getLocation();
-                                if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
-                                    plugin.withdrawChests.put(storageBlock, new NetworkItem(sortNetwork.netName, sortNetwork.owner, storageBlock, signBlock));
-                                    event.setLine(1, "§fOpen Chest");
-                                    event.setLine(2, "§fTo Withdraw");
-                                    player.sendMessage(ChatColor.AQUA + "Withdraw chest added to network " + netName + ".");
-                                }
-                                else {
-                                    player.sendMessage(ChatColor.RED + "You can only place chests within " + prox + " blocks of the original chest!");
-                                    event.setCancelled(true);
-                                }
+                    if (Util.isValidDepositWithdrawBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
+                        if (!AutoSort.worldRestrict || sortNetwork.world.equalsIgnoreCase(signBlock.getWorld().getName().toLowerCase())) {
+                            int prox = getProximity(netName);
+                            Location origin = getOrigin(sortNetwork.sortChests);
+                            Location here = storageBlock.getLocation();
+                            if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
+                                plugin.withdrawChests.put(storageBlock, new NetworkItem(sortNetwork.netName, sortNetwork.owner, storageBlock, signBlock));
+                                event.setLine(1, "§fOpen Chest");
+                                event.setLine(2, "§fTo Withdraw");
+                                player.sendMessage(ChatColor.AQUA + "Withdraw chest added to network " + netName + ".");
                             }
                             else {
-                                player.sendMessage(ChatColor.RED + "You can't add to a network unless you are in the same world as it!");
+                                player.sendMessage(ChatColor.RED + "You can only place chests within " + prox + " blocks of the original chest!");
                                 event.setCancelled(true);
                             }
                         }
                         else {
-                            player.sendMessage(ChatColor.RED + "Already Exists on network");
+                            player.sendMessage(ChatColor.RED + "You can't add to a network unless you are in the same world as it!");
                             event.setCancelled(true);
-                            return;
                         }
                     }
                     else {
-                        player.sendMessage(ChatColor.RED + "That's not a chest!");
                         event.setCancelled(true);
                         return;
                     }
@@ -355,7 +345,6 @@ public class AutoSortListener implements Listener {
             }
             else if (lines[0].startsWith("*")) {
                 if (event.getPlayer().hasPermission("autosort.use")) {
-                    String netName = lines[0].substring(1);
                     String mat1 = lines[1].toUpperCase();
                     String mat2 = lines[2].toUpperCase();
 
@@ -391,64 +380,33 @@ public class AutoSortListener implements Listener {
                     event.setLine(2, mat2);
 
                     if (mat.equalsIgnoreCase("")) { //TODO Deposit Chest
-                        if (Util.isValidDepositWithdrawBlock(storageBlock)) {
-                            if(isInNetwork(storageBlock)){
-                                player.sendMessage(ChatColor.RED + "You can't add this chest, it is already in a network!");
-                                event.setCancelled(true);
-                                return;
-                            }
-                            SortNetwork sortNetwork = plugin.findNetwork(player.getName(), netName);
-                            if (sortNetwork == null) {
-                                if (plugin.playerCanUseCommand(player, "autosort.create"))
-                                    sortNetwork = createNetwork(player, netName);
-                                else {
-                                    player.sendMessage(ChatColor.RED + "You don't have permission to create AutoSort networks!");
-                                    event.setCancelled(true);
-                                    return;
-                                }
-                            }
-                            if (!plugin.depositChests.containsKey(storageBlock)) {
-                                if (!AutoSort.worldRestrict || sortNetwork.world.equalsIgnoreCase(signBlock.getWorld().getName().toLowerCase())) {
-                                    int prox;
-                                    if (AutoSort.proximities.containsKey(netName)) {
-                                        prox = AutoSort.proximities.get(netName);
-                                    }
-                                    else {
-                                        prox = AutoSort.defaultProx;
-                                    }
-                                    Location origin = null;
-                                    if (sortNetwork.sortChests.size() > 0) origin = sortNetwork.sortChests.get(0).block.getLocation();
-                                    Location here = storageBlock.getLocation();
-                                    if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
-                                        event.setLine(1, "§fOpen Chest");
-                                        event.setLine(2, "§fTo Deposit");
-                                        player.sendMessage(ChatColor.AQUA + "Deposit chest added to " + sortNetwork.netName + ".");
-                                        plugin.depositChests.put(storageBlock, new NetworkItem(sortNetwork.netName, sortNetwork.owner, storageBlock, signBlock));
-                                    }
-                                    else {
-                                        player.sendMessage(ChatColor.RED + "You can only place chests within " + prox + " blocks of the original chest!");
-                                        event.setCancelled(true);
-                                    }
+                        if (Util.isValidDepositWithdrawBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
+                            if (!AutoSort.worldRestrict || sortNetwork.world.equalsIgnoreCase(signBlock.getWorld().getName().toLowerCase())) {
+                                int prox = getProximity(netName);
+                                Location origin = getOrigin(sortNetwork.sortChests);
+                                Location here = storageBlock.getLocation();
+                                if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
+                                    event.setLine(1, "§fOpen Chest");
+                                    event.setLine(2, "§fTo Deposit");
+                                    player.sendMessage(ChatColor.AQUA + "Deposit chest added to " + sortNetwork.netName + ".");
+                                    plugin.depositChests.put(storageBlock, new NetworkItem(sortNetwork.netName, sortNetwork.owner, storageBlock, signBlock));
                                 }
                                 else {
-                                    player.sendMessage(ChatColor.RED + "You can't add to a network unless you are in the same world as it!");
+                                    player.sendMessage(ChatColor.RED + "You can only place chests within " + prox + " blocks of the original chest!");
                                     event.setCancelled(true);
                                 }
                             }
                             else {
-                                player.sendMessage("Already Exists on network");
+                                player.sendMessage(ChatColor.RED + "You can't add to a network unless you are in the same world as it!");
                                 event.setCancelled(true);
-                                return;
                             }
                         }
                         else {
-                            player.sendMessage(ChatColor.RED + "That's not recognised inventory block!");
                             event.setCancelled(true);
                             return;
                         }
                     }
-                    else {
-                        //TODO Sort Chest
+                    else { //TODO Sort Chest
                         String[] matParts = mat.split(",");
                         for(String part : matParts) {
                             if (!isValid(part)) {
@@ -457,50 +415,21 @@ public class AutoSortListener implements Listener {
                                 return;
                             }
                         }
-                        if (Util.isValidInventoryBlock(storageBlock)) {
-                            if(isInNetwork(storageBlock)){
-                                player.sendMessage(ChatColor.RED + "You can't add this chest, it is already in a network!");
-                                event.setCancelled(true);
-                                return;
-                            }
+                        if (Util.isValidInventoryBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
                             boolean dd = !mat.contains(":");
-                            SortNetwork sortNetwork = plugin.findNetwork(player.getName(), netName);
-                            if (sortNetwork == null) {
-                                if (plugin.playerCanUseCommand(player, "autosort.create"))
-                                    sortNetwork = createNetwork(player, netName);
-                                else {
-                                    player.sendMessage(ChatColor.RED + "You don't have permission to create AutoSort networks!");
-                                    event.setCancelled(true);
-                                    return;
-                                }
-                            }
 
                             if (plugin.playerCanUseCommand(player, "autosort.override") || sortNetwork.owner.equalsIgnoreCase(player.getName())) {
                                 if (!AutoSort.worldRestrict || sortNetwork.world.equalsIgnoreCase(signBlock.getWorld().getName().toLowerCase())) {
-                                    SortChest sortChest = sortNetwork.findSortChest(storageBlock);
-                                    if (sortChest == null) {
-                                        int prox;
-                                        if (AutoSort.proximities.containsKey(netName)) {
-                                            prox = AutoSort.proximities.get(netName);
-                                        }
-                                        else {
-                                            prox = AutoSort.defaultProx;
-                                        }
-                                        Location origin = null;
-                                        if (sortNetwork.sortChests.size() > 0) origin = sortNetwork.sortChests.get(0).block.getLocation();
-                                        Location here = storageBlock.getLocation();
-                                        if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
-                                            player.sendMessage(ChatColor.AQUA + "Deposit chest added to " + sortNetwork.netName + ".");
-                                            sortNetwork.sortChests.add(new SortChest(storageBlock, signBlock, mat, priority, dd));
-                                            player.sendMessage(ChatColor.AQUA + "Sort chest with material(s) " + mat + " and priority " + priority + " added to network " + netName + ".");
-                                        }
-                                        else {
-                                            player.sendMessage(ChatColor.RED + "You can only place chests within " + prox + " blocks of the original chest!");
-                                            event.setCancelled(true);
-                                        }
+                                    int prox = getProximity(netName);
+                                    Location origin = getOrigin(sortNetwork.sortChests);
+                                    Location here = storageBlock.getLocation();
+                                    if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
+                                        player.sendMessage(ChatColor.AQUA + "Deposit chest added to " + sortNetwork.netName + ".");
+                                        sortNetwork.sortChests.add(new SortChest(storageBlock, signBlock, mat, priority, dd));
+                                        player.sendMessage(ChatColor.AQUA + "Sort chest with material(s) " + mat + " and priority " + priority + " added to network " + netName + ".");
                                     }
                                     else {
-                                        player.sendMessage(ChatColor.RED + "Already Exists on network");
+                                        player.sendMessage(ChatColor.RED + "You can only place chests within " + prox + " blocks of the original chest!");
                                         event.setCancelled(true);
                                     }
                                 }
@@ -515,8 +444,8 @@ public class AutoSortListener implements Listener {
                             }
                         }
                         else {
-                            event.getPlayer().sendMessage(ChatColor.RED + "That's not a chest!");
                             event.setCancelled(true);
+                            return;
                         }
                     }
                 }
@@ -526,54 +455,28 @@ public class AutoSortListener implements Listener {
                 }
             }
         }
-        else if (event.getBlock().getType().equals(Material.SIGN_POST)) {
-            if (plugin.playerCanUseCommand(player, "autosort.use")) { // TODO Drop Sign
+        else if (event.getBlock().getType().equals(Material.SIGN_POST)) { // TODO Drop Sign
+            if (plugin.playerCanUseCommand(player, "autosort.use")) {
                 if (lines[0].startsWith("*")) {
-                    String owner = player.getName();
-                    String netName = lines[0].substring(1);
                     Block sign = event.getBlock();
-                    SortNetwork sortNetwork = plugin.findNetwork(owner, netName);
-                    if (sortNetwork == null) {
-                        if (plugin.playerCanUseCommand(player, "autosort.create"))
-                            sortNetwork = createNetwork(player, netName);
-                        else {
-                            player.sendMessage(ChatColor.RED + "You don't have permission to create AutoSort networks!");
-                            event.setCancelled(true);
-                            return;
-                        }
-                    }
-                    if (!plugin.dropSigns.containsKey(sign)) {
-                        if (!AutoSort.worldRestrict || sortNetwork.world.equalsIgnoreCase(sign.getWorld().getName().toLowerCase())) {
-                            int prox;
-                            if (AutoSort.proximities.containsKey(netName)) {
-                                prox = AutoSort.proximities.get(netName);
-                            }
-                            else {
-                                prox = AutoSort.defaultProx;
-                            }
-                            Location origin = null;
-                            if (sortNetwork.sortChests.size() > 0) origin = sortNetwork.sortChests.get(0).block.getLocation();
-                            Location here = sign.getLocation();
-                            if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
-                                plugin.dropSigns.put(sign, new NetworkItem(sortNetwork.netName, owner, null, sign));
-                                player.sendMessage(ChatColor.BLUE + "Drop Sign added to network " + netName + ".");
-                                event.setLine(1, "§fDrop Items");
-                                event.setLine(2, "§fOn Sign");
-                            }
-                            else {
-                                player.sendMessage(ChatColor.RED + "You can only place drop signs within " + prox + " blocks of the original chest!");
-                                event.setCancelled(true);
-                            }
+                    if (!AutoSort.worldRestrict || sortNetwork.world.equalsIgnoreCase(sign.getWorld().getName().toLowerCase())) {
+                        int prox = getProximity(netName);
+                        Location origin = getOrigin(sortNetwork.sortChests);
+                        Location here = sign.getLocation();
+                        if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
+                            plugin.dropSigns.put(sign, new NetworkItem(sortNetwork.netName, owner, null, sign));
+                            player.sendMessage(ChatColor.BLUE + "Drop Sign added to network " + netName + ".");
+                            event.setLine(1, "§fDrop Items");
+                            event.setLine(2, "§fOn Sign");
                         }
                         else {
-                            player.sendMessage(ChatColor.RED + "You can't add to a network unless you are in the same world as it!");
+                            player.sendMessage(ChatColor.RED + "You can only place drop signs within " + prox + " blocks of the original chest!");
                             event.setCancelled(true);
                         }
                     }
                     else {
-                        player.sendMessage("Already Exists on network");
+                        player.sendMessage(ChatColor.RED + "You can't add to a network unless you are in the same world as it!");
                         event.setCancelled(true);
-                        return;
                     }
                 }
             }
@@ -610,6 +513,7 @@ public class AutoSortListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockPhysics(BlockPhysicsEvent event) {
+        if (event.isCancelled()) return;
         Block block = event.getBlock();
         Block sign = Util.findSign(block);
         if (sign != null) {
@@ -725,7 +629,7 @@ public class AutoSortListener implements Listener {
                 }
             }
         }
-        else if (Util.isValidInventoryBlock(block)) {
+        else if (Util.isValidInventoryBlock(player, block, false)) {
             SortNetwork sortNetwork = findNetworkBySortChest(block);
             if (sortNetwork == null) {
                 sortNetwork = findNetworkBySortChest(doubleChest(block));
@@ -1276,9 +1180,28 @@ public class AutoSortListener implements Listener {
         player.sendMessage(ChatColor.BLUE + "New network " + ChatColor.GRAY + netName + ChatColor.BLUE + " by " + ChatColor.GRAY + owner + ChatColor.BLUE + " created in " + ChatColor.GRAY + newNet.world + ChatColor.BLUE + ".");
         return newNet;
     }
-    
-    private boolean isInNetwork(Block storageBlock) {
-        return findNetworkBySortChest(storageBlock) != null || findNetworkBySortChest(doubleChest(storageBlock)) != null || plugin.withdrawChests.containsKey(storageBlock) || plugin.withdrawChests.containsKey(doubleChest(storageBlock)) || plugin.depositChests.containsKey(storageBlock) || plugin.depositChests.containsKey(doubleChest(storageBlock));
+
+    private boolean isInNetwork(Player player, Block storageBlock) {
+        if (findNetworkBySortChest(storageBlock) != null || findNetworkBySortChest(doubleChest(storageBlock)) != null || plugin.withdrawChests.containsKey(storageBlock) || plugin.withdrawChests.containsKey(doubleChest(storageBlock)) || plugin.depositChests.containsKey(storageBlock) || plugin.depositChests.containsKey(doubleChest(storageBlock))) {
+            player.sendMessage(ChatColor.RED + "You can't add this chest, it is already in a network!");
+            return true;
+        }
+        else
+            return false;
+    }
+
+    private int getProximity(String netName) {
+        if (AutoSort.proximities.containsKey(netName)) {
+            return AutoSort.proximities.get(netName);
+        }
+        else {
+            return AutoSort.defaultProx;
+        }
+
+    }
+
+    private Location getOrigin(List<SortChest> sortChests) {
+        return sortChests.size() > 0 ? sortChests.get(0).block.getLocation() : null;
     }
 
     private class IntegerComparator implements Comparator<Object> {

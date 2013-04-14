@@ -3,6 +3,7 @@ package plugin.arcwolf.autosort;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -11,24 +12,34 @@ import org.bukkit.block.Chest;
 import org.bukkit.block.Dispenser;
 import org.bukkit.block.Dropper;
 import org.bukkit.block.Hopper;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 public class Util {
 
-    public static boolean isValidInventoryBlock(Block block) {
-        return block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST) ||
+    public static boolean isValidInventoryBlock(Player player, Block block, Boolean isEventCheck) {
+        if (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST) ||
                 block.getType().equals(Material.DISPENSER) || block.getType().equals(Material.DROPPER) ||
-                block.getType().equals(Material.HOPPER);
+                block.getType().equals(Material.HOPPER)) {
+
+            if (isEventCheck) player.sendMessage(ChatColor.RED + "That's not recognised inventory block!");
+            return false;
+        }
+        return true;
     }
 
-    public static boolean isValidDepositWithdrawBlock(Block block) {
-        return block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST) ||
+    public static boolean isValidDepositWithdrawBlock(Player player, Block block, Boolean isEventCheck) {
+        if (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST) ||
                 block.getType().equals(Material.FURNACE) || block.getType().equals(Material.BURNING_FURNACE) ||
-                block.getType().equals(Material.HOPPER);
+                block.getType().equals(Material.HOPPER)) {
+            if (isEventCheck) player.sendMessage(ChatColor.RED + "That's not recognised inventory block!");
+            return false;
+        }
+        return true;
     }
-    
+
     public static ItemStack parseMaterialID(String str) {
         if (str != null) {
             if (str.contains(":")) {

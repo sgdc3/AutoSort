@@ -556,7 +556,7 @@ public class AutoSort extends JavaPlugin {
             Block sign = netItem.sign;
             if (!chest.getChunk().isLoaded()) chest.getChunk().load();
             if (!sign.getChunk().isLoaded()) sign.getChunk().load();
-            if (!Util.isValidDepositWithdrawBlock(chest)) {
+            if (!Util.isValidDepositWithdrawBlock(null, chest, false)) {
                 removeDepositChests.add(chest);
                 LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.netName + " removed (Not a chest block).");
             }
@@ -588,7 +588,7 @@ public class AutoSort extends JavaPlugin {
             Block sign = netItem.sign;
             if (!chest.getChunk().isLoaded()) chest.getChunk().load();
             if (!sign.getChunk().isLoaded()) sign.getChunk().load();
-            if (!Util.isValidDepositWithdrawBlock(chest)) {
+            if (!Util.isValidDepositWithdrawBlock(null, chest, false)) {
                 removeWithdrawChests.add(chest);
                 LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.netName + " removed (Not a chest block).");
             }
@@ -636,7 +636,7 @@ public class AutoSort extends JavaPlugin {
                         Block sign = sortChest.sign;
                         if (!chest.getChunk().isLoaded()) chest.getChunk().load();
                         if (!sign.getChunk().isLoaded()) sign.getChunk().load();
-                        if (Util.isValidInventoryBlock(chest)) {
+                        if (Util.isValidInventoryBlock(null, chest, false)) {
                             if (sign.getType().equals(Material.WALL_SIGN)) {
                                 if (!((Sign) sign.getState()).getLine(0).startsWith("*")) {
                                     removedChests.add(sortChest);
@@ -648,7 +648,7 @@ public class AutoSort extends JavaPlugin {
                                 LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getX() + "," + chest.getY() + "," + chest.getZ() + " in network " + netName + " removed (No sort sign).");
                             }
                         }
-                        else if (sortChest.block.getChunk().isLoaded() && !Util.isValidInventoryBlock(chest)) {
+                        else if (sortChest.block.getChunk().isLoaded() && !Util.isValidInventoryBlock(null, chest, false)) {
                             removedChests.add(sortChest);
                             LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getX() + "," + chest.getY() + "," + chest.getZ() + " in network " + netName + " removed (Not a chest block).");
                         }

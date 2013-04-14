@@ -75,7 +75,7 @@ public class SortTask implements Runnable {
                     String netName = depChest.getValue().netName;
                     String owner = depChest.getValue().owner;
                     SortNetwork net = plugin.findNetwork(owner, netName);
-                    if (net != null && Util.isValidDepositWithdrawBlock(depChest.getKey())) {
+                    if (net != null && Util.isValidDepositWithdrawBlock(null, depChest.getKey(), false)) {
                         InventoryHolder chest = Util.getInventoryHolder(depChest.getKey());
                         Inventory inv = chest.getInventory();
                         ItemStack[] contents = inv.getContents();
@@ -105,7 +105,7 @@ public class SortTask implements Runnable {
                     for(SortNetwork net : networks) {
                         for(SortChest chest : net.sortChests) {
                             if (chest.block.getChunk().isLoaded()) {
-                                if (chest.priority == i && Util.isValidInventoryBlock(chest.block)) {
+                                if (chest.priority == i && Util.isValidInventoryBlock(null, chest.block, false)) {
                                     maintainLavaFurnace(net, chest, chest.block);
                                     Inventory inv = Util.getInventory(chest.block);
                                     ItemStack[] items = inv.getContents();
@@ -135,7 +135,8 @@ public class SortTask implements Runnable {
     private void maintainLavaFurnace(SortNetwork net, SortChest sortChest, Block cblock) {
         try {
             if (plugin.getServer().getPluginManager().getPlugin("LavaFurnace") == null) return;
-            sortChest.sign.getChunk().load();
+            if (!sortChest.block.getChunk().isLoaded())
+                sortChest.block.getChunk().load();
             if (!(sortChest.sign.getType().equals(Material.WALL_SIGN))) return;
             if (!sortChest.signText.toLowerCase().contains("lavafurnace") && !sortChest.signText.toLowerCase().contains("lavafurnace")) return;
             LavaFurnace lfp = (LavaFurnace) LavaFurnace.plugin;
