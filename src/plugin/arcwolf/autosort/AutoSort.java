@@ -362,7 +362,7 @@ public class AutoSort extends JavaPlugin {
                         else if (network == null) {
                             LOGGER.warning("Could not find network to add dropchest to.");
                         }
-                        NetworkItem netItem = new NetworkItem(network.netName, network.owner, loc.getBlock(), sign);
+                        NetworkItem netItem = new NetworkItem(network, loc.getBlock(), sign);
                         depositChests.put(loc.getBlock(), netItem);
                     }
                 }
@@ -387,7 +387,7 @@ public class AutoSort extends JavaPlugin {
                             LOGGER.warning("Could not find network to add withdraw chest to");
                             break;
                         }
-                        NetworkItem netItem = new NetworkItem(network.netName, network.owner, loc.getBlock(), sign);
+                        NetworkItem netItem = new NetworkItem(network, loc.getBlock(), sign);
                         withdrawChests.put(loc.getBlock(), netItem);
                     }
                 }
@@ -470,7 +470,7 @@ public class AutoSort extends JavaPlugin {
 
                                 if (signLoc.getBlock().getState() instanceof Sign) {
                                     Block sign = signLoc.getBlock();
-                                    depositChests.put(chest, new NetworkItem(net.netName, owner, chest, sign));
+                                    depositChests.put(chest, new NetworkItem(net, chest, sign));
                                 }
                                 else {
                                     LOGGER.warning("[AutoSort] SortChest Sign Didnt exist at " + signLoc.getBlockX() + "," + signLoc.getBlockY() + "," + signLoc.getBlockZ() + ":" + signLoc.getWorld().getName());
@@ -503,7 +503,7 @@ public class AutoSort extends JavaPlugin {
                                 Location signLoc = new Location(world, Integer.parseInt(signData[1]), Integer.parseInt(signData[2]), Integer.parseInt(signData[3]));
                                 if (signLoc.getBlock().getState() instanceof Sign) {
                                     Block sign = signLoc.getBlock();
-                                    withdrawChests.put(chest, new NetworkItem(net.netName, owner, chest, sign));
+                                    withdrawChests.put(chest, new NetworkItem(net, chest, sign));
                                 }
                                 else {
                                     LOGGER.warning("[AutoSort] SortChest Sign Didnt exist at " + signLoc.getBlockX() + "," + signLoc.getBlockY() + "," + signLoc.getBlockZ() + ":" + signLoc.getWorld().getName());
@@ -530,7 +530,7 @@ public class AutoSort extends JavaPlugin {
                                 Location dSignLoc = new Location(world, Integer.parseInt(dSignData[1]), Integer.parseInt(dSignData[2]), Integer.parseInt(dSignData[3]));
                                 Block sign = dSignLoc.getBlock();
                                 if (sign.getState() instanceof Sign) {
-                                    dropSigns.put(sign, new NetworkItem(net.netName, owner, null, sign));
+                                    dropSigns.put(sign, new NetworkItem(net, null, sign));
                                 }
                                 else {
                                     LOGGER.warning("[AutoSort] Drop Sign Didnt exist at " + dSignLoc.getBlockX() + "," + dSignLoc.getBlockY() + "," + dSignLoc.getBlockZ() + ":" + dSignLoc.getWorld().getName());
@@ -556,13 +556,13 @@ public class AutoSort extends JavaPlugin {
             Block sign = netItem.sign;
             if (!chest.getChunk().isLoaded()) chest.getChunk().load();
             if (!sign.getChunk().isLoaded()) sign.getChunk().load();
-            if (!Util.isValidDepositWithdrawBlock(null, chest, false)) {
+            if (!Util.isValidDepositWithdrawBlock(chest)) {
                 removeDepositChests.add(chest);
-                LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.netName + " removed (Not a chest block).");
+                LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (Not a chest block).");
             }
             else if (sign.getChunk().isLoaded() && !sign.getType().equals(Material.WALL_SIGN)) {
                 removeDepositChests.add(chest);
-                LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.netName + " removed (No deposit sign).");
+                LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No deposit sign).");
             }
         }
         for(Block chest : removeDepositChests) {
@@ -575,7 +575,7 @@ public class AutoSort extends JavaPlugin {
             if (!sign.getChunk().isLoaded()) sign.getChunk().load();
             if (!sign.getType().equals(Material.SIGN_POST)) {
                 removeDropSigns.add(sign);
-                LOGGER.info("[AutoSort] Sign at " + sign.getWorld().getName() + "," + sign.getLocation().getX() + "," + sign.getLocation().getY() + "," + sign.getLocation().getZ() + " in network " + netItem.netName + " removed (No drop sign).");
+                LOGGER.info("[AutoSort] Sign at " + sign.getWorld().getName() + "," + sign.getLocation().getX() + "," + sign.getLocation().getY() + "," + sign.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No drop sign).");
             }
         }
         for(Block sign : removeDropSigns) {
@@ -588,13 +588,13 @@ public class AutoSort extends JavaPlugin {
             Block sign = netItem.sign;
             if (!chest.getChunk().isLoaded()) chest.getChunk().load();
             if (!sign.getChunk().isLoaded()) sign.getChunk().load();
-            if (!Util.isValidDepositWithdrawBlock(null, chest, false)) {
+            if (!Util.isValidDepositWithdrawBlock(chest)) {
                 removeWithdrawChests.add(chest);
-                LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.netName + " removed (Not a chest block).");
+                LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (Not a chest block).");
             }
             else if (sign.getChunk().isLoaded() && !sign.getType().equals(Material.WALL_SIGN)) {
                 removeWithdrawChests.add(chest);
-                LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.netName + " removed (No Withdraw sign).");
+                LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No Withdraw sign).");
             }
         }
         for(Block chest : removeWithdrawChests) {
@@ -610,17 +610,17 @@ public class AutoSort extends JavaPlugin {
                 int depositcount = 0;
                 int dropsigncount = 0;
                 for(Entry<Block, NetworkItem> wcount : withdrawChests.entrySet()) {
-                    if (wcount.getValue().owner.equals(net.owner) && wcount.getValue().netName.equals(net.netName)) {
+                    if (wcount.getValue().network.owner.equals(net.owner) && wcount.getValue().network.netName.equals(net.netName)) {
                         withdrawcount++;
                     }
                 }
                 for(Entry<Block, NetworkItem> dcount : depositChests.entrySet()) {
-                    if (dcount.getValue().owner.equals(net.owner) && dcount.getValue().netName.equals(net.netName)) {
+                    if (dcount.getValue().network.owner.equals(net.owner) && dcount.getValue().network.netName.equals(net.netName)) {
                         depositcount++;
                     }
                 }
                 for(Entry<Block, NetworkItem> dscount : dropSigns.entrySet()) {
-                    if (dscount.getValue().owner.equals(net.owner) && dscount.getValue().netName.equals(net.netName)) {
+                    if (dscount.getValue().network.owner.equals(net.owner) && dscount.getValue().network.netName.equals(net.netName)) {
                         dropsigncount++;
                     }
                 }
@@ -636,7 +636,7 @@ public class AutoSort extends JavaPlugin {
                         Block sign = sortChest.sign;
                         if (!chest.getChunk().isLoaded()) chest.getChunk().load();
                         if (!sign.getChunk().isLoaded()) sign.getChunk().load();
-                        if (Util.isValidInventoryBlock(null, chest, false)) {
+                        if (Util.isValidInventoryBlock(chest)) {
                             if (sign.getType().equals(Material.WALL_SIGN)) {
                                 if (!((Sign) sign.getState()).getLine(0).startsWith("*")) {
                                     removedChests.add(sortChest);
@@ -648,7 +648,7 @@ public class AutoSort extends JavaPlugin {
                                 LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getX() + "," + chest.getY() + "," + chest.getZ() + " in network " + netName + " removed (No sort sign).");
                             }
                         }
-                        else if (sortChest.block.getChunk().isLoaded() && !Util.isValidInventoryBlock(null, chest, false)) {
+                        else if (sortChest.block.getChunk().isLoaded() && !Util.isValidInventoryBlock(chest)) {
                             removedChests.add(sortChest);
                             LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getX() + "," + chest.getY() + "," + chest.getZ() + " in network " + netName + " removed (Not a chest block).");
                         }
@@ -711,7 +711,7 @@ public class AutoSort extends JavaPlugin {
                 // Save Deposit Chests
                 ConfigurationSection depChestSec = netnames.createSection("DepositChests");
                 for(Entry<Block, NetworkItem> depChest : depositChests.entrySet()) {
-                    if (depChest.getValue().owner.equals(key) && depChest.getValue().netName.equals(net.netName)) {
+                    if (depChest.getValue().network.owner.equals(key) && depChest.getValue().network.netName.equals(net.netName)) {
                         Location depLoc = depChest.getKey().getLocation();
                         Location depSignLoc = depChest.getValue().sign.getLocation();
                         String locString = depLoc.getWorld().getName().replace(".", "(dot)") + "," + depLoc.getBlockX() + "," + depLoc.getBlockY() + "," + depLoc.getBlockZ();
@@ -724,7 +724,7 @@ public class AutoSort extends JavaPlugin {
                 // Save WithdrawChests
                 ConfigurationSection wdChestSec = netnames.createSection("WithdrawChests");
                 for(Entry<Block, NetworkItem> wdChest : withdrawChests.entrySet()) {
-                    if (wdChest.getValue().owner.equals(key) && wdChest.getValue().netName.equals(net.netName)) {
+                    if (wdChest.getValue().network.owner.equals(key) && wdChest.getValue().network.netName.equals(net.netName)) {
                         Location wdLoc = wdChest.getKey().getLocation();
                         Location wdSignLoc = wdChest.getValue().sign.getLocation();
                         String locString = wdLoc.getWorld().getName().replace(".", "(dot)") + "," + wdLoc.getBlockX() + "," + wdLoc.getBlockY() + "," + wdLoc.getBlockZ();
@@ -737,7 +737,7 @@ public class AutoSort extends JavaPlugin {
                 // Save Drop Signs
                 ConfigurationSection dSignSec = netnames.createSection("DropSigns");
                 for(Entry<Block, NetworkItem> dSign : dropSigns.entrySet()) {
-                    if (dSign.getValue().owner.equals(key) && dSign.getValue().netName.equals(net.netName)) {
+                    if (dSign.getValue().network.owner.equals(key) && dSign.getValue().network.netName.equals(net.netName)) {
                         Location dSignLoc = dSign.getKey().getLocation();
                         String locString = dSignLoc.getWorld().getName().replace(".", "(dot)") + "," + dSignLoc.getBlockX() + "," + dSignLoc.getBlockY() + "," + dSignLoc.getBlockZ();
                         dSignSec.createSection(locString);

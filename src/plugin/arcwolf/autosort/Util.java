@@ -19,12 +19,20 @@ import org.bukkit.inventory.ItemStack;
 
 public class Util {
 
+    public static boolean isValidInventoryBlock(Block block) {
+        return isValidInventoryBlock(null, block, false);
+    }
+
     public static boolean isValidInventoryBlock(Player player, Block block, Boolean isEventCheck) {
         if (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST) ||
                 block.getType().equals(Material.DISPENSER) || block.getType().equals(Material.DROPPER) ||
                 block.getType().equals(Material.HOPPER)) { return true; }
         if (isEventCheck) player.sendMessage(ChatColor.RED + "That's not recognised inventory block!");
         return false;
+    }
+
+    public static boolean isValidDepositWithdrawBlock(Block block) {
+        return isValidDepositWithdrawBlock(null, block, false);
     }
 
     public static boolean isValidDepositWithdrawBlock(Player player, Block block, Boolean isEventCheck) {

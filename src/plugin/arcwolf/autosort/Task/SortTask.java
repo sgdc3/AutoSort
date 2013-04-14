@@ -72,10 +72,10 @@ public class SortTask implements Runnable {
         try {
             for(Entry<Block, NetworkItem> depChest : plugin.depositChests.entrySet()) {
                 if (depChest.getKey().getChunk().isLoaded()) {
-                    String netName = depChest.getValue().netName;
-                    String owner = depChest.getValue().owner;
+                    String netName = depChest.getValue().network.netName;
+                    String owner = depChest.getValue().network.owner;
                     SortNetwork net = plugin.findNetwork(owner, netName);
-                    if (net != null && Util.isValidDepositWithdrawBlock(null, depChest.getKey(), false)) {
+                    if (net != null && Util.isValidDepositWithdrawBlock(depChest.getKey())) {
                         InventoryHolder chest = Util.getInventoryHolder(depChest.getKey());
                         Inventory inv = chest.getInventory();
                         ItemStack[] contents = inv.getContents();
@@ -105,7 +105,7 @@ public class SortTask implements Runnable {
                     for(SortNetwork net : networks) {
                         for(SortChest chest : net.sortChests) {
                             if (chest.block.getChunk().isLoaded()) {
-                                if (chest.priority == i && Util.isValidInventoryBlock(null, chest.block, false)) {
+                                if (chest.priority == i && Util.isValidInventoryBlock(chest.block)) {
                                     maintainLavaFurnace(net, chest, chest.block);
                                     Inventory inv = Util.getInventory(chest.block);
                                     ItemStack[] items = inv.getContents();
@@ -172,7 +172,7 @@ public class SortTask implements Runnable {
     private void sortDropSign(Item item, Sign sign) {
         if (sign.getLine(0).startsWith("*")) {
             NetworkItem ni = plugin.findNetworkItemBySign(sign.getBlock());
-            SortNetwork net = plugin.findNetwork(ni.owner, ni.netName);
+            SortNetwork net = ni.network;
             if (net.sortItem(item.getItemStack())) {
                 item.remove();
             }

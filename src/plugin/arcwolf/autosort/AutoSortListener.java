@@ -149,25 +149,25 @@ public class AutoSortListener implements Listener {
         Player player = event.getPlayer();
         String pName = player.getName();
         if (Util.isValidInventoryBlock(player, block, false) || isValidSign(block)) {
-            NetworkItem ni = null;
+            NetworkItem netItem = null;
             if (plugin.withdrawChests.containsKey(block))
-                ni = plugin.withdrawChests.get(block);
+                netItem = plugin.withdrawChests.get(block);
             else if (plugin.withdrawChests.containsKey(doubleChest(block)))
-                ni = plugin.withdrawChests.get(doubleChest(block));
+                netItem = plugin.withdrawChests.get(doubleChest(block));
             SortNetwork net = null;
-            if (ni == null) {
-                ni = plugin.depositChests.get(block);
+            if (netItem == null) {
+                netItem = plugin.depositChests.get(block);
             }
 
-            if (ni == null) {
+            if (netItem == null) {
                 net = findNetworkBySortChest(block);
                 if (net == null) net = findNetworkBySortChest(doubleChest(block));
             }
             else {
-                net = plugin.findNetwork(ni.owner, ni.netName);
+                net = netItem.network;
             }
 
-            if (ni == null && net == null) return;
+            if (netItem == null && net == null) return;
             if (!pName.equalsIgnoreCase(net.owner) && !net.members.contains(pName)) {
                 //Transaction Fail isnt owned by this player
                 player.sendMessage("This network is owned by " + ChatColor.YELLOW + net.owner);
@@ -175,7 +175,7 @@ public class AutoSortListener implements Listener {
                 event.setCancelled(true);
             }
             else if (chestLock.containsValue(net)) {
-                if (ni == null || (plugin.depositChests.containsKey(block) || plugin.depositChests.containsKey(doubleChest(block)))) return;
+                if (netItem == null || (plugin.depositChests.containsKey(block) || plugin.depositChests.containsKey(doubleChest(block)))) return;
 
                 String user = "";
                 for(Entry<String, SortNetwork> sortNet : chestLock.entrySet()) {
@@ -189,9 +189,6 @@ public class AutoSortListener implements Listener {
                 player.sendMessage(ChatColor.GOLD + "Please wait...");
                 event.setCancelled(true);
             }
-        }
-        else {
-            findAttachedBlockFromSign(block);
         }
     }
 
@@ -230,9 +227,9 @@ public class AutoSortListener implements Listener {
             String owner = "";
             if (plugin.withdrawChests.containsKey(block)) {
                 NetworkItem ni = plugin.withdrawChests.get(block);
-                netName = ni.netName;
-                owner = ni.owner;
-                sortNetwork = plugin.findNetwork(ni.owner, netName);
+                netName = ni.network.netName;
+                owner = ni.network.owner;
+                sortNetwork = ni.network;
             }
             else {
                 return;
@@ -288,7 +285,6 @@ public class AutoSortListener implements Listener {
         String[] lines = event.getLines();
         String netName = "";
         Player player = event.getPlayer();
-        String owner = player.getName();
 
         SortNetwork sortNetwork = null;
         if (lines[0].startsWith("#") || lines[0].startsWith("*")) {
@@ -318,7 +314,7 @@ public class AutoSortListener implements Listener {
                             Location origin = getOrigin(sortNetwork.sortChests);
                             Location here = storageBlock.getLocation();
                             if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
-                                plugin.withdrawChests.put(storageBlock, new NetworkItem(sortNetwork.netName, sortNetwork.owner, storageBlock, signBlock));
+                                plugin.withdrawChests.put(storageBlock, new NetworkItem(sortNetwork, storageBlock, signBlock));
                                 event.setLine(1, "§fOpen Chest");
                                 event.setLine(2, "§fTo Withdraw");
                                 player.sendMessage(ChatColor.AQUA + "Withdraw chest added to network " + netName + ".");
@@ -389,7 +385,7 @@ public class AutoSortListener implements Listener {
                                     event.setLine(1, "§fOpen Chest");
                                     event.setLine(2, "§fTo Deposit");
                                     player.sendMessage(ChatColor.AQUA + "Deposit chest added to " + sortNetwork.netName + ".");
-                                    plugin.depositChests.put(storageBlock, new NetworkItem(sortNetwork.netName, sortNetwork.owner, storageBlock, signBlock));
+                                    plugin.depositChests.put(storageBlock, new NetworkItem(sortNetwork, storageBlock, signBlock));
                                 }
                                 else {
                                     player.sendMessage(ChatColor.RED + "You can only place chests within " + prox + " blocks of the original chest!");
@@ -464,7 +460,7 @@ public class AutoSortListener implements Listener {
                         Location origin = getOrigin(sortNetwork.sortChests);
                         Location here = sign.getLocation();
                         if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
-                            plugin.dropSigns.put(sign, new NetworkItem(sortNetwork.netName, owner, null, sign));
+                            plugin.dropSigns.put(sign, new NetworkItem(sortNetwork, null, sign));
                             player.sendMessage(ChatColor.BLUE + "Drop Sign added to network " + netName + ".");
                             event.setLine(1, "§fDrop Items");
                             event.setLine(2, "§fOn Sign");
@@ -491,7 +487,7 @@ public class AutoSortListener implements Listener {
             NetworkItem netItem = plugin.depositChests.get(block);
             SortNetwork sortNetwork = null;
             if (netItem != null)
-                sortNetwork = plugin.findNetwork(netItem.owner, netItem.netName);
+                sortNetwork = netItem.network;
             else
                 return;
             if (sortNetwork == null) return;
@@ -518,19 +514,15 @@ public class AutoSortListener implements Listener {
         Block sign = Util.findSign(block);
         if (sign != null) {
             String[] lines = ((Sign) sign.getState()).getLines();
-            if (lines[0].startsWith("*")) {
-                if (block.getType().equals(Material.SIGN_POST)) {
-                    if (plugin.dropSigns.containsKey(sign)) {
-                        event.setCancelled(true);
-                    }
+            if (lines[0].startsWith("*") || lines[0].startsWith("#")) {
+                if (plugin.findNetworkItemBySign(sign) != null){
+                    event.setCancelled(true);
+                    return;
                 }
-                else {
-                    if (plugin.findNetworkItemBySign(sign) != null) event.setCancelled(true);
-                    if (findNetworkBySign(sign) != null) event.setCancelled(true);
+                if (findNetworkBySign(sign) != null){
+                    event.setCancelled(true);
+                    return;
                 }
-            }
-            else if (lines[0].startsWith("#")) {
-                if (plugin.findNetworkItemBySign(sign) != null) event.setCancelled(true);
             }
         }
     }
@@ -567,7 +559,7 @@ public class AutoSortListener implements Listener {
                         // Drop Sign
                         netItem = plugin.findNetworkItemBySign(block);
                         if (netItem != null) {
-                            sortNetwork = plugin.findNetwork(netItem.owner, netItem.netName);
+                            sortNetwork = netItem.network;
                         }
                         else
                             return;
@@ -610,7 +602,7 @@ public class AutoSortListener implements Listener {
                 SortNetwork sortNetwork = null;
                 NetworkItem netItem = plugin.findNetworkItemBySign(block);
                 if (netItem != null) {
-                    sortNetwork = plugin.findNetwork(netItem.owner, netItem.netName);
+                    sortNetwork = netItem.network;
                 }
                 else
                     return;
@@ -658,8 +650,8 @@ public class AutoSortListener implements Listener {
             else if (plugin.depositChests.containsKey(block) || plugin.depositChests.containsKey(doubleChest(block))) {
                 if (plugin.depositChests.containsKey(doubleChest(block)))
                     block = doubleChest(block);
-                String owner = plugin.depositChests.get(block).owner;
-                if (plugin.depositChests.get(block).owner.equals(pName)) {
+                String owner = plugin.depositChests.get(block).network.owner;
+                if (plugin.depositChests.get(block).network.owner.equals(pName)) {
                     Block blockSign = plugin.depositChests.get(block).sign;
                     if (blockSign.getType().equals(Material.WALL_SIGN)) {
                         Sign chestSign = (Sign) blockSign.getState();
@@ -681,9 +673,9 @@ public class AutoSortListener implements Listener {
             else if (plugin.withdrawChests.containsKey(block) || plugin.withdrawChests.containsKey(doubleChest(block))) {
                 if (plugin.withdrawChests.containsKey(doubleChest(block)))
                     block = doubleChest(block);
-                String owner = plugin.withdrawChests.get(block).owner;
-                SortNetwork net = plugin.findNetwork(owner, plugin.withdrawChests.get(block).netName);
-                if (plugin.withdrawChests.get(block).owner.equals(pName)) {
+                String owner = plugin.withdrawChests.get(block).network.owner;
+                SortNetwork net = plugin.withdrawChests.get(block).network;
+                if (net.owner.equals(pName)) {
                     CustomPlayer settings = CustomPlayer.getSettings(event.getPlayer());
                     settings.clearPlayer();
                     Block blockSign = plugin.withdrawChests.get(block).sign;
@@ -866,14 +858,10 @@ public class AutoSortListener implements Listener {
     private void restoreWithdrawnInv(CustomPlayer settings, Player player) {
         if (settings.block != null) {
             SortNetwork sortNetwork = null;
-            String netName = "";
-            String owner = "";
             if (plugin.withdrawChests.containsKey(settings.block)) {
                 NetworkItem ni = plugin.withdrawChests.get(settings.block);
                 if (ni == null) return;
-                netName = ni.netName;
-                owner = ni.owner;
-                sortNetwork = plugin.findNetwork(owner, netName);
+                sortNetwork = ni.network;
             }
             if (sortNetwork == null) return;
             if (chestLock.containsKey(player.getName())) {
@@ -896,7 +884,7 @@ public class AutoSortListener implements Listener {
             NetworkItem depChest = plugin.depositChests.get(testBlock);
             if (depChest == null) depChest = plugin.depositChests.get(doubleChest(testBlock));
             if (depChest != null) {
-                SortNetwork sortNet = plugin.findNetwork(depChest.owner, depChest.netName);
+                SortNetwork sortNet = depChest.network;
                 if (!owner.equals(sortNet.owner)) {
                     player.sendMessage("This network is owned by " + ChatColor.YELLOW + sortNet.owner);
                     player.sendMessage(ChatColor.RED + "You can not access or modify this Network.");
@@ -906,7 +894,7 @@ public class AutoSortListener implements Listener {
             NetworkItem withChest = plugin.withdrawChests.get(testBlock);
             if (withChest == null) withChest = plugin.withdrawChests.get(doubleChest(testBlock));
             if (withChest != null) {
-                SortNetwork sortNet = plugin.findNetwork(withChest.owner, withChest.netName);
+                SortNetwork sortNet = withChest.network;
                 if (!owner.equals(sortNet.owner)) {
                     player.sendMessage("This network is owned by " + ChatColor.YELLOW + sortNet.owner);
                     player.sendMessage(ChatColor.RED + "You can not access or modify this Network.");
@@ -934,12 +922,12 @@ public class AutoSortListener implements Listener {
         Block blockToTest = doubleChest(block);
         if (blockToTest.getType().equals(mat)) {
             SortNetwork net = null;
-            NetworkItem ni = plugin.depositChests.get(blockToTest);
-            if (ni == null) ni = plugin.withdrawChests.get(blockToTest);
-            if (ni == null)
+            NetworkItem netItem = plugin.depositChests.get(blockToTest);
+            if (netItem == null) netItem = plugin.withdrawChests.get(blockToTest);
+            if (netItem == null)
                 net = findNetworkBySortChest(blockToTest);
             else
-                net = plugin.findNetwork(ni.owner, ni.netName);
+                net = netItem.network;
             if (net == null) return false;
             if (!net.owner.equals(player.getName())) {
                 player.sendMessage("This network is owned by " + ChatColor.YELLOW + net.owner);
@@ -1010,25 +998,6 @@ public class AutoSortListener implements Listener {
             Block otherHalf = block.getRelative(face);
             if (otherHalf.getType().equals(Material.HOPPER)) { return otherHalf; }
         }
-        return block;
-    }
-
-    private Block findAttachedBlockFromSign(Block block) {
-        if (block.getType().equals(Material.SIGN_POST))
-            return block.getRelative(BlockFace.DOWN);
-        else if (block.getType().equals(Material.WALL_SIGN))
-            switch (block.getData()) {
-            case 2:
-                return block.getRelative(BlockFace.SOUTH);
-            case 3:
-                return block.getRelative(BlockFace.NORTH);
-            case 4:
-                return block.getRelative(BlockFace.EAST);
-            case 5:
-                return block.getRelative(BlockFace.WEST);
-            default: // Should never get to this point
-            return block;
-            }
         return block;
     }
 

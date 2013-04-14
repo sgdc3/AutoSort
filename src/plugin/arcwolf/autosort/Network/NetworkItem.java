@@ -4,14 +4,12 @@ import org.bukkit.block.Block;
 
 public class NetworkItem {
 
-    public String owner = "";
-    public String netName = "";
+    public SortNetwork network = null;
     public Block chest;
     public Block sign;
     
-    public NetworkItem(String netName, String owner, Block chest, Block sign){
-        this.netName = netName;
-        this.owner = owner;
+    public NetworkItem(SortNetwork network, Block chest, Block sign){
+        this.network = network;
         this.chest = chest;
         this.sign = sign;
     }
