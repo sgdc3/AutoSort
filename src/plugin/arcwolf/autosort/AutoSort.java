@@ -324,11 +324,11 @@ public class AutoSort extends JavaPlugin {
                                         net.sortChests.add(new SortChest(chest, sign, signText, priority, disregardDamage));
                                     }
                                     else {
-                                        LOGGER.warning("[AutoSort] SortChest Sign Didnt exist at " + signLoc.getBlockX() + "," + signLoc.getBlockY() + "," + signLoc.getBlockZ() + ":" + signLoc.getWorld().getName());
+                                        LOGGER.warning(pluginName + ": SortChest Sign Didnt exist at " + signLoc.getBlockX() + "," + signLoc.getBlockY() + "," + signLoc.getBlockZ() + ":" + signLoc.getWorld().getName());
                                     }
                                 }
                                 else {
-                                    LOGGER.warning("[AutoSort] Null world: " + chestData[0] + " . Does this world still exist?");
+                                    LOGGER.warning(pluginName + ": Null world: " + chestData[0] + " . Does this world still exist?");
                                 }
                             }
                         }
@@ -350,17 +350,17 @@ public class AutoSort extends JavaPlugin {
                     String[] data = key.split(",");
                     Location loc = new Location(getServer().getWorld(data[0].replace("(dot)", ".")), Integer.parseInt(data[1]), Integer.parseInt(data[2]), Integer.parseInt(data[3]));
                     if (loc.getWorld() == null) {
-                        LOGGER.warning("[AutoSort] Null drop chest location! " + key + " Does this world still exist?");
+                        LOGGER.warning(pluginName + ": Null drop chest location! " + key + " Does this world still exist?");
                     }
                     else {
                         SortNetwork network = findV4Network((String) dchests.get(key));
                         Block sign = findSignFromChest(loc.getBlock());
                         if (sign == null) {
-                            LOGGER.warning("Failed to find sign for deposit chest");
+                            LOGGER.warning(pluginName + ": Failed to find sign for deposit chest");
                             break;
                         }
                         else if (network == null) {
-                            LOGGER.warning("Could not find network to add dropchest to.");
+                            LOGGER.warning(pluginName + ": Could not find network to add dropchest to.");
                         }
                         NetworkItem netItem = new NetworkItem(network, loc.getBlock(), sign);
                         depositChests.put(loc.getBlock(), netItem);
@@ -374,17 +374,17 @@ public class AutoSort extends JavaPlugin {
                     String[] data = key.split(",");
                     Location loc = new Location(getServer().getWorld(data[0].replace("(dot)", ".")), Integer.parseInt(data[1]), Integer.parseInt(data[2]), Integer.parseInt(data[3]));
                     if (loc.getWorld() == null) {
-                        LOGGER.warning("[AutoSort] Null Withdraw chest location! " + key + " Does this world still exist?");
+                        LOGGER.warning(pluginName + ": Null Withdraw chest location! " + key + " Does this world still exist?");
                     }
                     else {
                         SortNetwork network = findV4Network((String) wchests.get(key));
                         Block sign = findSignFromChest(loc.getBlock());
                         if (sign == null) {
-                            LOGGER.warning("Failed to find sign for Withdraw chest");
+                            LOGGER.warning(pluginName + ": Failed to find sign for Withdraw chest");
                             break;
                         }
                         else if (network == null) {
-                            LOGGER.warning("Could not find network to add withdraw chest to");
+                            LOGGER.warning(pluginName + ": Could not find network to add withdraw chest to");
                             break;
                         }
                         NetworkItem netItem = new NetworkItem(network, loc.getBlock(), sign);
@@ -436,11 +436,11 @@ public class AutoSort extends JavaPlugin {
                                 net.sortChests.add(new SortChest(chest, sign, signText, priority, disregardDamage));
                             }
                             else {
-                                LOGGER.warning("[AutoSort] SortChest Sign Didnt exist at " + signLoc.getBlockX() + "," + signLoc.getBlockY() + "," + signLoc.getBlockZ() + ":" + signLoc.getWorld().getName());
+                                LOGGER.warning(pluginName + ": SortChest Sign Didnt exist at " + signLoc.getBlockX() + "," + signLoc.getBlockY() + "," + signLoc.getBlockZ() + ":" + signLoc.getWorld().getName());
                             }
                         }
                         else {
-                            LOGGER.warning("[AutoSort] Null world: " + chestData[0] + " . Does this world still exist?");
+                            LOGGER.warning(pluginName + ": Null world: " + chestData[0] + " . Does this world still exist?");
                         }
                     }
                     if (networks.containsKey(owner)) {
@@ -473,16 +473,16 @@ public class AutoSort extends JavaPlugin {
                                     depositChests.put(chest, new NetworkItem(net, chest, sign));
                                 }
                                 else {
-                                    LOGGER.warning("[AutoSort] SortChest Sign Didnt exist at " + signLoc.getBlockX() + "," + signLoc.getBlockY() + "," + signLoc.getBlockZ() + ":" + signLoc.getWorld().getName());
+                                    LOGGER.warning(pluginName + ": SortChest Sign Didnt exist at " + signLoc.getBlockX() + "," + signLoc.getBlockY() + "," + signLoc.getBlockZ() + ":" + signLoc.getWorld().getName());
                                 }
                             }
                             else {
-                                LOGGER.warning("[AutoSort] Null world: " + depChestData[0] + " . Does this world still exist?");
+                                LOGGER.warning(pluginName + ": Null world: " + depChestData[0] + " . Does this world still exist?");
                             }
                         }
                     } catch (Exception e) {
-                        LOGGER.info("[AutoSort] did not find dropchest section in database");
-                        LOGGER.info("[AutoSort] it will be added next save update");
+                        LOGGER.warning(pluginName + ": did not find dropchest section in database");
+                        LOGGER.warning(pluginName + ": it will be added next save update");
                     }
 
                     try {
@@ -506,16 +506,16 @@ public class AutoSort extends JavaPlugin {
                                     withdrawChests.put(chest, new NetworkItem(net, chest, sign));
                                 }
                                 else {
-                                    LOGGER.warning("[AutoSort] SortChest Sign Didnt exist at " + signLoc.getBlockX() + "," + signLoc.getBlockY() + "," + signLoc.getBlockZ() + ":" + signLoc.getWorld().getName());
+                                    LOGGER.warning(pluginName + ": SortChest Sign Didnt exist at " + signLoc.getBlockX() + "," + signLoc.getBlockY() + "," + signLoc.getBlockZ() + ":" + signLoc.getWorld().getName());
                                 }
                             }
                             else {
-                                LOGGER.warning("[AutoSort] Null world: " + wdChestData[0] + " . Does this world still exist?");
+                                LOGGER.warning(pluginName + ": Null world: " + wdChestData[0] + " . Does this world still exist?");
                             }
                         }
                     } catch (Exception e) {
-                        LOGGER.info("[AutoSort] did not find withdraw chest section in database");
-                        LOGGER.info("[AutoSort] it will be added next save update");
+                        LOGGER.warning(pluginName + ": did not find withdraw chest section in database");
+                        LOGGER.warning(pluginName + ": it will be added next save update");
                     }
 
                     try {
@@ -533,16 +533,16 @@ public class AutoSort extends JavaPlugin {
                                     dropSigns.put(sign, new NetworkItem(net, null, sign));
                                 }
                                 else {
-                                    LOGGER.warning("[AutoSort] Drop Sign Didnt exist at " + dSignLoc.getBlockX() + "," + dSignLoc.getBlockY() + "," + dSignLoc.getBlockZ() + ":" + dSignLoc.getWorld().getName());
+                                    LOGGER.warning(pluginName + ": Drop Sign Didnt exist at " + dSignLoc.getBlockX() + "," + dSignLoc.getBlockY() + "," + dSignLoc.getBlockZ() + ":" + dSignLoc.getWorld().getName());
                                 }
                             }
                             else {
-                                LOGGER.warning("[AutoSort] Null world: " + dSignData[0] + " . Does this world still exist?");
+                                LOGGER.warning(pluginName + ": Null world: " + dSignData[0] + " . Does this world still exist?");
                             }
                         }
                     } catch (Exception e) {
-                        LOGGER.info("[AutoSort] did not find dropsigns section in database");
-                        LOGGER.info("[AutoSort] it will be added next save update");
+                        LOGGER.warning(pluginName + ": did not find dropsigns section in database");
+                        LOGGER.warning(pluginName + ": it will be added next save update");
                     }
                 }
             }
@@ -558,11 +558,11 @@ public class AutoSort extends JavaPlugin {
             if (!sign.getChunk().isLoaded()) sign.getChunk().load();
             if (!Util.isValidDepositWithdrawBlock(chest)) {
                 removeDepositChests.add(chest);
-                LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (Not a chest block).");
+                LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (Not a chest block).");
             }
             else if (sign.getChunk().isLoaded() && !sign.getType().equals(Material.WALL_SIGN)) {
                 removeDepositChests.add(chest);
-                LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No deposit sign).");
+                LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No deposit sign).");
             }
         }
         for(Block chest : removeDepositChests) {
@@ -575,7 +575,7 @@ public class AutoSort extends JavaPlugin {
             if (!sign.getChunk().isLoaded()) sign.getChunk().load();
             if (!sign.getType().equals(Material.SIGN_POST)) {
                 removeDropSigns.add(sign);
-                LOGGER.info("[AutoSort] Sign at " + sign.getWorld().getName() + "," + sign.getLocation().getX() + "," + sign.getLocation().getY() + "," + sign.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No drop sign).");
+                LOGGER.info(pluginName + ": Sign at " + sign.getWorld().getName() + "," + sign.getLocation().getX() + "," + sign.getLocation().getY() + "," + sign.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No drop sign).");
             }
         }
         for(Block sign : removeDropSigns) {
@@ -590,11 +590,11 @@ public class AutoSort extends JavaPlugin {
             if (!sign.getChunk().isLoaded()) sign.getChunk().load();
             if (!Util.isValidDepositWithdrawBlock(chest)) {
                 removeWithdrawChests.add(chest);
-                LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (Not a chest block).");
+                LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (Not a chest block).");
             }
             else if (sign.getChunk().isLoaded() && !sign.getType().equals(Material.WALL_SIGN)) {
                 removeWithdrawChests.add(chest);
-                LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No Withdraw sign).");
+                LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No Withdraw sign).");
             }
         }
         for(Block chest : removeWithdrawChests) {
@@ -627,7 +627,7 @@ public class AutoSort extends JavaPlugin {
 
                 if (net.sortChests.size() == 0 && withdrawcount == 0 && depositcount == 0 && dropsigncount == 0) {
                     removedNets.add(net);
-                    LOGGER.info("[AutoSort] Network " + netName + " removed (Empty Network).");
+                    LOGGER.info(pluginName + ": Network " + netName + " removed (Empty Network).");
                 }
                 else {
                     List<SortChest> removedChests = new ArrayList<SortChest>();
@@ -640,17 +640,17 @@ public class AutoSort extends JavaPlugin {
                             if (sign.getType().equals(Material.WALL_SIGN)) {
                                 if (!((Sign) sign.getState()).getLine(0).startsWith("*")) {
                                     removedChests.add(sortChest);
-                                    LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getX() + "," + chest.getY() + "," + chest.getZ() + " in network " + netName + " removed (No sort sign).");
+                                    LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getX() + "," + chest.getY() + "," + chest.getZ() + " in network " + netName + " removed (No sort sign).");
                                 }
                             }
                             else {
                                 removedChests.add(sortChest);
-                                LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getX() + "," + chest.getY() + "," + chest.getZ() + " in network " + netName + " removed (No sort sign).");
+                                LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getX() + "," + chest.getY() + "," + chest.getZ() + " in network " + netName + " removed (No sort sign).");
                             }
                         }
                         else if (sortChest.block.getChunk().isLoaded() && !Util.isValidInventoryBlock(chest)) {
                             removedChests.add(sortChest);
-                            LOGGER.info("[AutoSort] Chest at " + chest.getWorld().getName() + "," + chest.getX() + "," + chest.getY() + "," + chest.getZ() + " in network " + netName + " removed (Not a chest block).");
+                            LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getX() + "," + chest.getY() + "," + chest.getZ() + " in network " + netName + " removed (Not a chest block).");
                         }
                     }
                     for(SortChest chest : removedChests) {
@@ -673,7 +673,7 @@ public class AutoSort extends JavaPlugin {
         }
         for(String player : players) {
             networks.remove(player);
-            LOGGER.info("[AutoSort] Player : " + player + " removed from database, No active networks.");
+            LOGGER.info(pluginName + ": Player: " + player + " removed from database, No active networks.");
         }
     }
 
@@ -688,14 +688,22 @@ public class AutoSort extends JavaPlugin {
         }
 
         getCustomConfig().set("version", SAVEVERSION);
+        
+        // Save Owners
         ConfigurationSection netsSec = getCustomConfig().createSection("Owners");
         for(Entry<String, List<SortNetwork>> nets : networks.entrySet()) {
             String key = nets.getKey();
+            
+            // Save Networks
             ConfigurationSection owners = netsSec.createSection(key);
             ConfigurationSection newnet = owners.createSection("NetworkNames");
             for(SortNetwork net : nets.getValue()) {
+                
+                // Save Members
                 ConfigurationSection netnames = newnet.createSection(net.netName);
                 netnames.set("Members", net.members);
+                
+                // Save Sort Chests
                 ConfigurationSection chestSec = netnames.createSection("Chests");
                 for(SortChest chest : net.sortChests) {
                     Location loc = chest.block.getLocation();
@@ -708,6 +716,7 @@ public class AutoSort extends JavaPlugin {
                     cSec.set("Priority", chest.priority);
                     cSec.set("DisregardDamage", chest.disregardDamage);
                 }
+                
                 // Save Deposit Chests
                 ConfigurationSection depChestSec = netnames.createSection("DepositChests");
                 for(Entry<Block, NetworkItem> depChest : depositChests.entrySet()) {
@@ -774,7 +783,7 @@ public class AutoSort extends JavaPlugin {
         try {
             customConfig.save(customConfigFile);
         } catch (IOException ex) {
-            Logger.getLogger(JavaPlugin.class.getName()).log(Level.SEVERE, "Could not save config to " + customConfigFile, ex);
+            LOGGER.log(Level.SEVERE, pluginName + ": Could not save config to " + customConfigFile, ex);
         }
     }
 
@@ -906,7 +915,7 @@ public class AutoSort extends JavaPlugin {
                         return sign;
                     }
                     else {
-                        System.out.println("Found " + maybeChest.getType().name() + " needed " + chest.getType().name());
+                        LOGGER.info(pluginName + ": Found " + maybeChest.getType().name() + " needed " + chest.getType().name());
                     }
                 }
             }

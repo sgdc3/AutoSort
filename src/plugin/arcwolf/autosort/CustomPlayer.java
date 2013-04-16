@@ -15,7 +15,7 @@ public class CustomPlayer {
     public int currentItemIdx = 0; // Current item to start a chest withdraw on.
     public int wantedAmount = 1; // Current amount for a withdraw
     public String netName = ""; // This networks name
-    public String owner = ""; // THis networks owner
+    public String owner = ""; // This networks owner
     public String playerName = ""; // The players name
     public Block block = null; // The withdraw chest block
     public List<InventoryItem> inventory = new ArrayList<InventoryItem>(400); // Full inventory of this network

@@ -105,7 +105,7 @@ public class AutoSortListener implements Listener {
         plugin.items.add(item);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onInventoryClose(InventoryCloseEvent event) {
         if (!(event.getPlayer() instanceof Player)) return;
         Player player = (Player) event.getPlayer();
@@ -754,7 +754,6 @@ public class AutoSortListener implements Listener {
                                     networkInv.clear(idx);
                                 }
                                 else { // Wanted less then max stack size for item
-                                    ;
                                     ItemStack item = new ItemStack(wantedItem, 1, networkItem.getDurability());
                                     item.setData(networkItem.getData());
                                     couldntFit = withdrawInv.getInventory().addItem(item);
