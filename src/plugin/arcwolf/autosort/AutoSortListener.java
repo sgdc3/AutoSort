@@ -723,9 +723,10 @@ public class AutoSortListener implements Listener {
         int wantedItem = settings.inventory.get(settings.currentItemIdx).itemId;
         int wantedItemId = settings.inventory.get(settings.currentItemIdx).itemData;
         Map<Integer, ItemStack> couldntFit = null;
+        Inventory networkInv;
         for(SortChest chest : settings.sortNetwork.sortChests) {
-            chest.block.getChunk().load();
-            Inventory networkInv = null;
+            if (!chest.block.getChunk().isLoaded())
+                chest.block.getChunk().load();
             networkInv = Util.getInventory(chest.block);
             if (networkInv == null) return false;
             for(int idx = 0; idx < networkInv.getSize(); idx++) {
@@ -766,24 +767,23 @@ public class AutoSortListener implements Listener {
         Chest chest = (Chest) settings.block.getState();
         ItemStack dummyItem = new ItemStack(373, 1);
         try {
-            settings.block.getChunk().load();
-            Inventory inv = ((Chest) settings.block.getState()).getInventory();
-            boolean toomanyItems = false;
-            for(int i = 0; i < inv.getSize(); i++) {
-                if (inv.getItem(i) != null) {
-                    if (!settings.sortNetwork.sortItem(inv.getItem(i))) {
-                        chest.getLocation().getWorld().dropItem(player.getLocation(), inv.getItem(i));
-                        toomanyItems = true;
-                    }
-                }
-            }
-            if (toomanyItems) player.sendMessage(ChatColor.GOLD + settings.netName + ChatColor.RED + " is too full to replace withdrawchest Items!");
+            if (!settings.block.getChunk().isLoaded())
+                settings.block.getChunk().load();
+            if (tooManyItems(player, settings)) player.sendMessage(ChatColor.GOLD + settings.netName + ChatColor.RED + " is too full to replace withdrawchest Items!");
             chest.getInventory().clear();
             chest.getInventory().setItem(0, dummyItem);
             chest.getInventory().setItem(8, dummyItem);
+
             for(settings.currentItemIdx = settings.startItemIdx; settings.currentItemIdx < settings.inventory.size(); settings.currentItemIdx++) {
                 settings.wantedAmount = settings.inventory.get(settings.currentItemIdx).amount;
                 makeWithdraw(player, settings);
+            }
+            if (chest.getInventory().firstEmpty() != -1 && settings.startItemIdx != 0) {
+                for(int count = 0; count < settings.startItemIdx; count++) {
+                    settings.currentItemIdx = count;
+                    settings.wantedAmount = settings.inventory.get(count).amount;
+                    makeWithdraw(player, settings);
+                }
             }
         } catch (Exception e) {
             ConsoleCommandSender sender = plugin.getServer().getConsoleSender();
@@ -846,6 +846,21 @@ public class AutoSortListener implements Listener {
                 settings.clearPlayer();
             }
         }
+    }
+
+    private boolean tooManyItems(Player player, CustomPlayer settings) {
+        boolean tooManyItems = false;
+        Inventory inv = ((Chest) settings.block.getState()).getInventory();
+        Location dropLoc = player.getLocation();
+        for(int i = 0; i < inv.getSize(); i++) {
+            if (inv.getItem(i) != null) {
+                if (!settings.sortNetwork.sortItem(inv.getItem(i))) {
+                    dropLoc.getWorld().dropItem(dropLoc, inv.getItem(i));
+                    tooManyItems = true;
+                }
+            }
+        }
+        return tooManyItems;
     }
 
     private boolean hopperDropperStopper(List<Block> blocksToTest, Player player) {
