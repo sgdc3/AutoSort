@@ -571,7 +571,7 @@ public class AutoSortListener implements Listener {
                     if (sortNetwork == null) return;
                 }
 
-                if (sortNetwork.owner.equals(pName)) {
+                if (sortNetwork.owner.equals(pName) || plugin.playerCanUseCommand(player, "autosort.override")) {
                     if (netItem != null) {
                         if (plugin.depositChests.remove(storageBlock) != null) {
                             event.getPlayer().sendMessage(ChatColor.BLUE + "Deposit chest removed.");
@@ -607,8 +607,23 @@ public class AutoSortListener implements Listener {
                 else
                     return;
 
-                if (sortNetwork.owner.equals(pName)) {
-                    if (plugin.withdrawChests.remove(storageBlock) != null) {
+                if (sortNetwork.owner.equals(pName) || plugin.playerCanUseCommand(player, "autosort.override")) {
+                    SortNetwork net = plugin.withdrawChests.get(storageBlock).network;
+                    if (chestLock.containsValue(net)) {
+                        String user = "";
+                        for(Entry<String, SortNetwork> sortNet : chestLock.entrySet()) {
+                            if (sortNet.getValue().equals(net)) {
+                                user = sortNet.getKey();
+                                break;
+                            }
+                        }
+                        //Transaction Fail someone else is using the withdraw function
+                        player.sendMessage("This network is being withdrawn from by " + ChatColor.YELLOW + user);
+                        player.sendMessage(ChatColor.GOLD + "Please wait...");
+                        event.setCancelled(true);
+                        return;
+                    }
+                    else if (plugin.withdrawChests.remove(storageBlock) != null) {
                         event.getPlayer().sendMessage(ChatColor.BLUE + "Withdraw chest removed.");
                         return;
                     }
@@ -628,7 +643,7 @@ public class AutoSortListener implements Listener {
                 block = doubleChest(block);
             }
             if (sortNetwork != null) {
-                if (sortNetwork.owner.equals(pName)) {
+                if (sortNetwork.owner.equals(pName) || plugin.playerCanUseCommand(player, "autosort.override")) {
                     SortChest sortChest = sortNetwork.findSortChest(block);
                     if (sortChest.sign.getType().equals(Material.WALL_SIGN)) {
                         Sign chestSign = (Sign) sortChest.sign.getState();
@@ -651,7 +666,7 @@ public class AutoSortListener implements Listener {
                 if (plugin.depositChests.containsKey(doubleChest(block)))
                     block = doubleChest(block);
                 String owner = plugin.depositChests.get(block).network.owner;
-                if (plugin.depositChests.get(block).network.owner.equals(pName)) {
+                if (plugin.depositChests.get(block).network.owner.equals(pName) || plugin.playerCanUseCommand(player, "autosort.override")) {
                     Block blockSign = plugin.depositChests.get(block).sign;
                     if (blockSign.getType().equals(Material.WALL_SIGN)) {
                         Sign chestSign = (Sign) blockSign.getState();
@@ -675,7 +690,21 @@ public class AutoSortListener implements Listener {
                     block = doubleChest(block);
                 String owner = plugin.withdrawChests.get(block).network.owner;
                 SortNetwork net = plugin.withdrawChests.get(block).network;
-                if (net.owner.equals(pName)) {
+                if (chestLock.containsValue(net)) {
+                    String user = "";
+                    for(Entry<String, SortNetwork> sortNet : chestLock.entrySet()) {
+                        if (sortNet.getValue().equals(net)) {
+                            user = sortNet.getKey();
+                            break;
+                        }
+                    }
+                    //Transaction Fail someone else is using the withdraw function
+                    player.sendMessage("This network is being withdrawn from by " + ChatColor.YELLOW + user);
+                    player.sendMessage(ChatColor.GOLD + "Please wait...");
+                    event.setCancelled(true);
+                    return;
+                }
+                else if (net.owner.equals(pName) || plugin.playerCanUseCommand(player, "autosort.override")) {
                     CustomPlayer settings = CustomPlayer.getSettings(event.getPlayer());
                     settings.clearPlayer();
                     Block blockSign = plugin.withdrawChests.get(block).sign;
@@ -688,19 +717,6 @@ public class AutoSortListener implements Listener {
                     plugin.withdrawChests.remove(block);
                     event.getPlayer().sendMessage(ChatColor.BLUE + "Withdraw chest removed.");
                     return;
-                }
-                else if (chestLock.containsValue(net)) {
-                    String user = "";
-                    for(Entry<String, SortNetwork> sortNet : chestLock.entrySet()) {
-                        if (sortNet.getValue().equals(net)) {
-                            user = sortNet.getKey();
-                            break;
-                        }
-                    }
-                    //Transaction Fail someone else is using the withdraw function
-                    player.sendMessage("This network is being withdrawn from by " + ChatColor.YELLOW + user);
-                    player.sendMessage(ChatColor.GOLD + "Please wait...");
-                    event.setCancelled(true);
                 }
                 else {
                     event.getPlayer().sendMessage("This network is owned by " + ChatColor.YELLOW + owner);
