@@ -744,25 +744,11 @@ public class AutoSortListener implements Listener {
                         }
                         else if (wantedAmount != 0 && wantedAmount < foundAmount) { // Found amount and was more then wanted
                             while (wantedAmount > 0) {
-                                if (wantedAmount >= stack.getMaxStackSize()) { // Wanted more then max stack size for item.
-                                    couldntFit = withdrawInv.getInventory().addItem(stack);
-                                    if (couldntFit != null && !couldntFit.isEmpty()) { return false; }
-                                    wantedAmount -= foundAmount;
-                                    settings.wantedAmount = wantedAmount;
-                                    networkInv.clear(idx);
-                                }
-                                else { // Wanted less then max stack size for item
-                                    ItemStack item = new ItemStack(wantedItem, 1, networkItem.getDurability());
-                                    item.setData(networkItem.getData());
-                                    couldntFit = withdrawInv.getInventory().addItem(item);
-                                    if (couldntFit != null && !couldntFit.isEmpty()) { return false; }
-                                    if (networkItem.getAmount() - 1 <= 0)
-                                        networkInv.clear(idx);
-                                    else
-                                        networkItem.setAmount(networkItem.getAmount() - 1);
-                                    wantedAmount--;
-                                    settings.wantedAmount = wantedAmount;
-                                }
+                                couldntFit = withdrawInv.getInventory().addItem(stack);
+                                if (couldntFit != null && !couldntFit.isEmpty()) { return false; }
+                                wantedAmount -= foundAmount;
+                                settings.wantedAmount = wantedAmount;
+                                networkInv.clear(idx);
                             }
                             if (couldntFit != null && !couldntFit.isEmpty()) { return false; }
                             wantedAmount -= foundAmount;
