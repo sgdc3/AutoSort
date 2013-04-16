@@ -113,6 +113,71 @@ public class AutoSortListener implements Listener {
         restoreWithdrawnInv(settings, player);
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onInventoryOpen(InventoryOpenEvent event) {
+        if (event.isCancelled()) return;
+        InventoryHolder holder = event.getInventory().getHolder();
+        Block block = null;
+        Block lChest = null;
+        Block rChest = null;
+        if (holder instanceof Chest) {
+            block = ((Chest) holder).getBlock();
+        }
+        else if (holder instanceof DoubleChest) {
+            DoubleChest dblchest = (DoubleChest) holder;
+            lChest = ((Chest) dblchest.getLeftSide()).getBlock();
+            rChest = ((Chest) dblchest.getRightSide()).getBlock();
+            if (plugin.withdrawChests.containsKey(lChest)) {
+                block = lChest;
+            }
+            else if (plugin.withdrawChests.containsKey(rChest)) {
+                block = rChest;
+            }
+        }
+        else
+            return;
+        Player player = null;
+        if (event.getPlayer() instanceof Player)
+            player = (Player) event.getPlayer();
+        else
+            return;
+        if (block == null || player == null) return;
+        if (block.getState() instanceof Chest) {
+            SortNetwork sortNetwork = null;
+            String netName = "";
+            String owner = "";
+            if (plugin.withdrawChests.containsKey(block)) {
+                NetworkItem ni = plugin.withdrawChests.get(block);
+                netName = ni.network.netName;
+                owner = ni.network.owner;
+                sortNetwork = ni.network;
+            }
+            else {
+                return;
+            }
+            if (sortNetwork == null) return;
+
+            //Transaction Start
+            chestLock.put(player.getName(), sortNetwork);
+            CustomPlayer settings = CustomPlayer.getSettings(player);
+            settings.block = block;
+            settings.netName = netName;
+            settings.owner = owner;
+            settings.playerName = player.getName();
+            settings.sortNetwork = sortNetwork;
+            if (updateInventoryList(player, settings)) {
+                Collections.sort(settings.inventory, new IntegerComparator());
+                updateChestInventory(player, settings);
+            }
+            else {
+                player.sendMessage("The network - " + ChatColor.YELLOW + netName + ChatColor.WHITE + " - is empty.");
+                chestLock.remove(player.getName());
+                settings.clearPlayer();
+                event.setCancelled(true);
+            }
+        }
+    }
+
     @EventHandler(priority = EventPriority.LOWEST)
     public void onInventoryClick(InventoryClickEvent event) {
         int clickedId = event.getRawSlot();
@@ -134,10 +199,10 @@ public class AutoSortListener implements Listener {
                     else
                         settings.startItemIdx = 0;
                 }
-                updateChestTask(settings.block, player);
+                updateChestTask(player, settings);
             }
             else if (clickedId <= ((Chest) settings.block.getState()).getInventory().getSize()) { // If player removes item from chest resort chest
-                updateChestTask(settings.block, player);
+                updateChestTask(player, settings);
             }
         }
     }
@@ -187,71 +252,6 @@ public class AutoSortListener implements Listener {
                 //Transaction Fail someone else is using the withdraw function
                 player.sendMessage("This network is being withdrawn from by " + ChatColor.YELLOW + user);
                 player.sendMessage(ChatColor.GOLD + "Please wait...");
-                event.setCancelled(true);
-            }
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onInventoryOpen(InventoryOpenEvent event) {
-        if (event.isCancelled()) return;
-        InventoryHolder holder = event.getInventory().getHolder();
-        Block block = null;
-        Block lChest = null;
-        Block rChest = null;
-        if (holder instanceof Chest) {
-            block = ((Chest) holder).getBlock();
-        }
-        else if (holder instanceof DoubleChest) {
-            DoubleChest dblchest = (DoubleChest) holder;
-            lChest = ((Chest) dblchest.getLeftSide()).getBlock();
-            rChest = ((Chest) dblchest.getRightSide()).getBlock();
-            if (plugin.withdrawChests.containsKey(lChest)) {
-                block = lChest;
-            }
-            else if (plugin.withdrawChests.containsKey(rChest)) {
-                block = rChest;
-            }
-        }
-        else
-            return;
-        Player player = null;
-        if (event.getPlayer() instanceof Player)
-            player = (Player) event.getPlayer();
-        else
-            return;
-        if (block == null || player == null) return;
-        if (block.getState() instanceof Chest) {
-            SortNetwork sortNetwork = null;
-            String netName = "";
-            String owner = "";
-            if (plugin.withdrawChests.containsKey(block)) {
-                NetworkItem ni = plugin.withdrawChests.get(block);
-                netName = ni.network.netName;
-                owner = ni.network.owner;
-                sortNetwork = ni.network;
-            }
-            else {
-                return;
-            }
-            if (sortNetwork == null) return;
-            //System.out.println(pName + " is owner? " + pName.equalsIgnoreCase(net.owner) + " is member? " + net.members.contains(pName));
-            //Transaction Start
-            chestLock.put(player.getName(), sortNetwork);
-            CustomPlayer settings = CustomPlayer.getSettings(player);
-            //settings.location = player.getLocation();
-            settings.block = block;
-            settings.netName = netName;
-            settings.owner = owner;
-            settings.playerName = player.getName();
-            if (updateInventoryList(player)) {
-                Collections.sort(settings.inventory, new IntegerComparator());
-                updateChestInventory(block, player);
-            }
-            else {
-                player.sendMessage("The network - " + ChatColor.YELLOW + netName + ChatColor.WHITE + " - is empty.");
-                chestLock.remove(player.getName());
-                settings.clearPlayer();
                 event.setCancelled(true);
             }
         }
@@ -515,11 +515,11 @@ public class AutoSortListener implements Listener {
         if (sign != null) {
             String[] lines = ((Sign) sign.getState()).getLines();
             if (lines[0].startsWith("*") || lines[0].startsWith("#")) {
-                if (plugin.findNetworkItemBySign(sign) != null){
+                if (plugin.findNetworkItemBySign(sign) != null) {
                     event.setCancelled(true);
                     return;
                 }
-                if (findNetworkBySign(sign) != null){
+                if (findNetworkBySign(sign) != null) {
                     event.setCancelled(true);
                     return;
                 }
@@ -717,15 +717,13 @@ public class AutoSortListener implements Listener {
     // Roll through the network and pull out the correct amount of resources.
     // If not enough space return a false
     // true is successful
-    private boolean makeWithdraw(Player player, Block block) {
-        CustomPlayer settings = CustomPlayer.getSettings(player);
-        Chest withdrawChest = (Chest) block.getState();
-        SortNetwork net = plugin.findNetwork(settings.owner, settings.netName);
+    private boolean makeWithdraw(Player player, CustomPlayer settings) {
+        Chest withdrawChest = (Chest) settings.block.getState();
         int wantedAmount = settings.wantedAmount;
         int wantedItem = settings.inventory.get(settings.currentItemIdx).itemId;
         int wantedItemId = settings.inventory.get(settings.currentItemIdx).itemData;
         Map<Integer, ItemStack> couldntFit = null;
-        for(SortChest chest : net.sortChests) {
+        for(SortChest chest : settings.sortNetwork.sortChests) {
             chest.block.getChunk().load();
             Inventory networkInv = null;
             networkInv = Util.getInventory(chest.block);
@@ -778,20 +776,17 @@ public class AutoSortListener implements Listener {
         return true;
     }
 
-    private void updateChestInventory(Block block, Player player) {
-        CustomPlayer settings = CustomPlayer.getSettings(player);
-        List<InventoryItem> networkInventory = settings.inventory;
-        Chest chest = (Chest) block.getState();
+    private void updateChestInventory(Player player, CustomPlayer settings) {
+        Chest chest = (Chest) settings.block.getState();
         ItemStack dummyItem = new ItemStack(373, 1);
         try {
-            SortNetwork net = plugin.findNetwork(settings.owner, settings.netName);
             settings.block.getChunk().load();
             Inventory inv = ((Chest) settings.block.getState()).getInventory();
             boolean toomanyItems = false;
             for(int i = 0; i < inv.getSize(); i++) {
                 if (inv.getItem(i) != null) {
-                    if (!net.sortItem(inv.getItem(i))) {
-                        block.getLocation().getWorld().dropItem(player.getLocation(), inv.getItem(i));
+                    if (!settings.sortNetwork.sortItem(inv.getItem(i))) {
+                        chest.getLocation().getWorld().dropItem(player.getLocation(), inv.getItem(i));
                         toomanyItems = true;
                     }
                 }
@@ -800,9 +795,9 @@ public class AutoSortListener implements Listener {
             chest.getInventory().clear();
             chest.getInventory().setItem(0, dummyItem);
             chest.getInventory().setItem(8, dummyItem);
-            for(settings.currentItemIdx = settings.startItemIdx; settings.currentItemIdx < networkInventory.size(); settings.currentItemIdx++) {
-                settings.wantedAmount = networkInventory.get(settings.currentItemIdx).amount;
-                makeWithdraw(player, block);
+            for(settings.currentItemIdx = settings.startItemIdx; settings.currentItemIdx < settings.inventory.size(); settings.currentItemIdx++) {
+                settings.wantedAmount = settings.inventory.get(settings.currentItemIdx).amount;
+                makeWithdraw(player, settings);
             }
         } catch (Exception e) {
             ConsoleCommandSender sender = plugin.getServer().getConsoleSender();
@@ -821,10 +816,8 @@ public class AutoSortListener implements Listener {
         }
     }
 
-    private boolean updateInventoryList(Player player) {
-        CustomPlayer settings = CustomPlayer.getSettings(player);
-        SortNetwork net = plugin.findNetwork(settings.owner, settings.netName);
-        for(SortChest chest : net.sortChests) {
+    private boolean updateInventoryList(Player player, CustomPlayer settings) {
+        for(SortChest chest : settings.sortNetwork.sortChests) {
             Inventory inv = Util.getInventoryHolder(chest.block).getInventory();
             if (inv == null) continue;
             for(ItemStack item : inv) {
@@ -837,7 +830,6 @@ public class AutoSortListener implements Listener {
                     }
                     else {
                         settings.inventory.add(new InventoryItem(itemId, itemData, item.getAmount()));
-                        index = settings.findItem(itemId, itemData);
                     }
                 }
             }
@@ -845,30 +837,23 @@ public class AutoSortListener implements Listener {
         return settings.inventory.size() > 0;
     }
 
-    private void updateChestTask(final Block block, final Player player) {
+    private void updateChestTask(final Player player, final CustomPlayer settings) {
         plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 
             public void run() {
-                updateChestInventory(block, player);
+                updateChestInventory(player, settings);
             }
         }, 3);
     }
 
     private void restoreWithdrawnInv(CustomPlayer settings, Player player) {
-        if (settings.block != null) {
-            SortNetwork sortNetwork = null;
-            if (plugin.withdrawChests.containsKey(settings.block)) {
-                NetworkItem ni = plugin.withdrawChests.get(settings.block);
-                if (ni == null) return;
-                sortNetwork = ni.network;
-            }
-            if (sortNetwork == null) return;
+        if (settings.sortNetwork != null) {
             if (chestLock.containsKey(player.getName())) {
                 chestLock.remove(player.getName());
                 Inventory inv = ((Chest) settings.block.getState()).getInventory();
                 for(int i = 0; i < inv.getSize(); i++) {
                     if (inv.getItem(i) != null) {
-                        sortNetwork.sortItem(inv.getItem(i));
+                        settings.sortNetwork.sortItem(inv.getItem(i));
                     }
                 }
                 inv.clear();

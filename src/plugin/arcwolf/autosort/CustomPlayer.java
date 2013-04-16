@@ -8,6 +8,8 @@ import java.util.Map;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
+import plugin.arcwolf.autosort.Network.SortNetwork;
+
 public class CustomPlayer {
 
     public static Map<String, CustomPlayer> playerSettings = new HashMap<String, CustomPlayer>();
@@ -19,6 +21,7 @@ public class CustomPlayer {
     public String playerName = ""; // The players name
     public Block block = null; // The withdraw chest block
     public List<InventoryItem> inventory = new ArrayList<InventoryItem>(400); // Full inventory of this network
+    public SortNetwork sortNetwork = null;
 
     public static CustomPlayer getSettings(Player player) {
         
@@ -39,6 +42,7 @@ public class CustomPlayer {
         playerName = "";
         block = null;
         inventory.clear();
+        sortNetwork = null;
     }
 
     public int findItem(int itemId, int itemData) {
