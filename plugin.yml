@@ -40,6 +40,10 @@ commands:
     description: Removes players from a AutoSort network
     permission: autosort.remfromnet
     usage: /remfromnet [netName] [players...]
+  asremnet:
+    description: Removes a network 
+    permission: autosort.remnet
+    usage: /asremnet <ownerName> <networkName>
 permissions:
   autosort.*:
     children:
@@ -57,6 +61,7 @@ permissions:
       autosort.remfromnet: true
       autosort.ignoreproximity: true
       autosort.listasgroups: true
+      autosort.remnet: true
       
   autosort.common: 
     children:

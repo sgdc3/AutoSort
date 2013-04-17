@@ -2,8 +2,13 @@ package plugin.arcwolf.autosort;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -11,6 +16,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import plugin.arcwolf.autosort.Network.NetworkItem;
+import plugin.arcwolf.autosort.Network.SortChest;
 import plugin.arcwolf.autosort.Network.SortNetwork;
 
 public class CommandHandler {
@@ -268,6 +275,15 @@ public class CommandHandler {
             }
             return true;
         }
+        else if (commandName.equalsIgnoreCase("asremnet") && plugin.playerCanUseCommand(player, "autosort.remnet")) {
+            // /asremnet <OwnerName> <networkName>
+            String ownerName = args[0];
+            String netName = args[1];
+            sender.sendMessage(ChatColor.YELLOW + "The network ( " + ChatColor.WHITE + netName + ChatColor.YELLOW + " ) owned by ( " + ChatColor.WHITE + ownerName + ChatColor.YELLOW + " ) is deleted.");
+            deleteNetwork(ownerName, netName, sender.getName());
+            plugin.saveVersion5Network();
+            return true;
+        }
         return false;
     }
 
@@ -441,7 +457,61 @@ public class CommandHandler {
             }
             return true;
         }
+        else if (commandName.equalsIgnoreCase("asremnet")) {
+            // /asremnet <OwnerName> <networkName>
+            String ownerName = args[0];
+            String netName = args[1];
+            sender.sendMessage(ChatColor.YELLOW + "The network ( " + ChatColor.WHITE + netName + ChatColor.YELLOW + " ) owned by ( " + ChatColor.WHITE + ownerName + ChatColor.YELLOW + " ) is deleted.");
+            deleteNetwork(ownerName, netName, sender.getName());
+            plugin.saveVersion5Network();
+            return true;
+        }
         return false;
+    }
+
+    private void deleteNetwork(String ownerName, String netName, String whoDeleted) {
+        SortNetwork network = plugin.findNetwork(ownerName, netName);
+        List<Block> netItemsToDel = new ArrayList<Block>();
+        for(Entry<Block, NetworkItem> wchest : plugin.withdrawChests.entrySet()) {
+            if (wchest.getValue().network.equals(network)) {
+                updateSign(wchest.getValue().sign, netName, whoDeleted);
+                netItemsToDel.add(wchest.getKey());
+            }
+        }
+        for(Entry<Block, NetworkItem> dchest : plugin.depositChests.entrySet()) {
+            if (dchest.getValue().network.equals(network)) {
+                updateSign(dchest.getValue().sign, netName, whoDeleted);
+                netItemsToDel.add(dchest.getKey());
+            }
+        }
+        for(Entry<Block, NetworkItem> dsign : plugin.dropSigns.entrySet()) {
+            if (dsign.getValue().network.equals(network)) {
+                updateSign(dsign.getValue().sign, netName, whoDeleted);
+                netItemsToDel.add(dsign.getKey());
+            }
+        }
+        for(Block netBlock : netItemsToDel) {
+            plugin.depositChests.remove(netBlock);
+            plugin.withdrawChests.remove(netBlock);
+            plugin.dropSigns.remove(netBlock);
+        }
+        for(SortChest chest : network.sortChests) {
+            updateSign(chest.sign, netName, whoDeleted);
+        }
+        plugin.networks.get(ownerName).remove(network);
+    }
+
+    private void updateSign(Block sign, String netName, String whoDeleted) {
+        if (sign.getType().equals(Material.WALL_SIGN) || sign.getType().equals(Material.SIGN_POST)) {
+            BlockState sgn = sign.getState();
+            Sign s = (Sign) sign.getState();
+            s.setLine(0, "§e[ " + netName + " ]");
+            s.setLine(1, "§edeleted by");
+            s.setLine(2, "§e" + whoDeleted);
+            s.setLine(3, "");
+            sgn.update(true);
+            s.update(true);
+        }
     }
 
     private String getTrueMaterial(ItemStack item) {

@@ -233,7 +233,7 @@ public class AutoSortListener implements Listener {
             }
 
             if (netItem == null && net == null) return;
-            if (!pName.equalsIgnoreCase(net.owner) && !net.members.contains(pName)) {
+            if (!pName.equalsIgnoreCase(net.owner) && !net.members.contains(pName) && !plugin.playerCanUseCommand(player, "autosort.override")) {
                 //Transaction Fail isnt owned by this player
                 player.sendMessage("This network is owned by " + ChatColor.YELLOW + net.owner);
                 player.sendMessage(ChatColor.RED + "You can not access or modify this Network.");
