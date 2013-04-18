@@ -511,15 +511,14 @@ public class AutoSortListener implements Listener {
     public void onBlockPhysics(BlockPhysicsEvent event) {
         if (event.isCancelled()) return;
         Block block = event.getBlock();
-        Block sign = Util.findSign(block);
-        if (sign != null) {
-            String[] lines = ((Sign) sign.getState()).getLines();
+        if (block.getType().equals(Material.WALL_SIGN) || block.getType().equals(Material.SIGN_POST)) {
+            String[] lines = ((Sign) block.getState()).getLines();
             if (lines[0].startsWith("*") || lines[0].startsWith("#")) {
-                if (plugin.findNetworkItemBySign(sign) != null) {
+                if (plugin.findNetworkItemBySign(block) != null) {
                     event.setCancelled(true);
                     return;
                 }
-                if (findNetworkBySign(sign) != null) {
+                if (findNetworkBySign(block) != null) {
                     event.setCancelled(true);
                     return;
                 }

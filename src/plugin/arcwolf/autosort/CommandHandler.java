@@ -284,9 +284,14 @@ public class CommandHandler {
             plugin.saveVersion5Network();
             return true;
         }
+        else if (commandName.equals("aswithdraw")){ //Test withdraw inventory.
+            //Inventory customInventory = Bukkit.createInventory(null, 9, "Test inventory");
+            //((Player)sender).openInventory(customInventory);
+            return true;
+        }
         return false;
     }
-
+    
     public boolean inConsole(CommandSender sender, Command cmd, String commandLabel, String[] args) {
         String commandName = cmd.getName();
         if (commandName.equalsIgnoreCase("asreload")) {
