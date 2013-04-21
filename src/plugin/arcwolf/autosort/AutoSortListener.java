@@ -321,7 +321,7 @@ public class AutoSortListener implements Listener {
                 }
                 else {
                     event.setCancelled(true);
-                    player.sendMessage(ChatColor.RED + "You do not have permission to create AutoSort chests.");
+                    player.sendMessage(ChatColor.RED + "You do not have permission to create Withdraw chests.");
                 }
             }
             else if (lines[0].startsWith("*")) {
@@ -639,7 +639,7 @@ public class AutoSortListener implements Listener {
                     network.depositChests.remove(Util.doubleChest(block));
                     event.getPlayer().sendMessage(ChatColor.BLUE + "Deposit chest removed.");
                 }
-                else if (network.withdrawChests.containsKey(block) || network.withdrawChests.containsKey(block)) {
+                else if (network.withdrawChests.containsKey(block) || network.withdrawChests.containsKey(Util.doubleChest(block))) {
                     if (chestLock.containsValue(network)) {
                         String user = "";
                         for(Entry<String, SortNetwork> sortNet : chestLock.entrySet()) {
@@ -660,7 +660,7 @@ public class AutoSortListener implements Listener {
                         NetworkItem netItem = network.withdrawChests.get(block);
                         if (netItem == null) netItem = network.withdrawChests.get(Util.doubleChest(block));
                         if (netItem == null) return;
-                        Block signBlock = network.withdrawChests.get(block).sign;
+                        Block signBlock = netItem.sign;
                         if (signBlock.getType().equals(Material.WALL_SIGN)) {
                             Sign chestSign = (Sign) signBlock.getState();
                             for(int line = 0; line < 4; line++)
