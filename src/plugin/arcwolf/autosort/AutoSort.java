@@ -136,7 +136,7 @@ public class AutoSort extends JavaPlugin {
             return commandHandler.inConsole(sender, cmd, commandLabel, args);
     }
 
-    public boolean playerCanUseCommand(Player player, String command) {
+    public boolean playerHasPermission(Player player, String command) {
         getPermissionsPlugin();
         if (vaultPerms != null) {
             if (debug == 1) {

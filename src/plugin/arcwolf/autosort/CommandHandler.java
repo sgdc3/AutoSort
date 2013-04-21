@@ -31,7 +31,7 @@ public class CommandHandler {
     public boolean inGame(CommandSender sender, Command cmd, String commandLabel, String[] args) {
         String commandName = cmd.getName();
         Player player = (Player) sender;
-        if (commandName.equalsIgnoreCase("autosort") && plugin.playerCanUseCommand(player, "autosort.use")) {
+        if (commandName.equalsIgnoreCase("autosort") && plugin.playerHasPermission(player, "autosort.use")) {
             if (args.length == 1) {
                 Inventory inv = player.getInventory();
                 SortNetwork net = plugin.findNetwork(player.getName(), args[0]);
@@ -57,7 +57,7 @@ public class CommandHandler {
                 }
             }
         }
-        else if (commandName.equalsIgnoreCase("asreload") && plugin.playerCanUseCommand(player, "autosort.reload")) {
+        else if (commandName.equalsIgnoreCase("asreload") && plugin.playerHasPermission(player, "autosort.reload")) {
             if (args.length == 0) {
                 plugin.getPluginLoader().disablePlugin(plugin);
                 plugin.getPluginLoader().enablePlugin(plugin);
@@ -65,7 +65,7 @@ public class CommandHandler {
                 return true;
             }
         }
-        else if (commandName.equalsIgnoreCase("addasgroup") && plugin.playerCanUseCommand(player, "autosort.addasgroup")) {
+        else if (commandName.equalsIgnoreCase("addasgroup") && plugin.playerHasPermission(player, "autosort.addasgroup")) {
             if (args.length > 1) {
                 String groupName = args[0].toUpperCase();
                 List<ItemStack> matList = new ArrayList<ItemStack>();
@@ -88,7 +88,7 @@ public class CommandHandler {
                 return true;
             }
         }
-        else if (commandName.equalsIgnoreCase("modasgroup") && plugin.playerCanUseCommand(player, "autosort.modasgroup")) {
+        else if (commandName.equalsIgnoreCase("modasgroup") && plugin.playerHasPermission(player, "autosort.modasgroup")) {
             if (args.length > 1) {
                 String groupName = args[0].toUpperCase();
                 if (AutoSort.customMatGroups.containsKey(groupName)) {
@@ -121,7 +121,7 @@ public class CommandHandler {
                 return true;
             }
         }
-        else if (commandName.equalsIgnoreCase("delasgroup") && plugin.playerCanUseCommand(player, "autosort.delasgroup")) {
+        else if (commandName.equalsIgnoreCase("delasgroup") && plugin.playerHasPermission(player, "autosort.delasgroup")) {
             if (args.length == 1) {
                 String groupName = args[0].toUpperCase();
                 if (AutoSort.customMatGroups.containsKey(groupName)) {
@@ -137,14 +137,14 @@ public class CommandHandler {
                 return true;
             }
         }
-        else if (commandName.equalsIgnoreCase("ascleanup") && plugin.playerCanUseCommand(player, "autosort.ascleanup")) {
+        else if (commandName.equalsIgnoreCase("ascleanup") && plugin.playerHasPermission(player, "autosort.ascleanup")) {
             sender.sendMessage(ChatColor.BLUE + "Cleaning up all AutoSort networks...");
             plugin.cleanupNetwork();
             sender.sendMessage("Check server log for information on cleanup procedure.");
             sender.sendMessage(ChatColor.BLUE + "Done.");
             return true;
         }
-        else if (commandName.equalsIgnoreCase("addtonet") && plugin.playerCanUseCommand(player, "autosort.addtonet")) {
+        else if (commandName.equalsIgnoreCase("addtonet") && plugin.playerHasPermission(player, "autosort.addtonet")) {
             if (args.length > 1) {
                 String netName = args[0];
                 SortNetwork net = plugin.findNetwork(player.getName(), netName);
@@ -162,7 +162,7 @@ public class CommandHandler {
                     sender.sendMessage(count + " " + ChatColor.BLUE + "Player(s) successfully added to the network.");
                     return true;
                 }
-                else if (net == null && plugin.playerCanUseCommand(player, "autosort.override")) {
+                else if (net == null && plugin.playerHasPermission(player, "autosort.override")) {
                     if (args.length > 2) {
                         netName = args[1];
                         String owner = args[0];
@@ -197,7 +197,7 @@ public class CommandHandler {
                 sender.sendMessage(ChatColor.RED + "Too few arguments! Usage: /addtonet [netName] [players...]");
             }
         }
-        else if (commandName.equalsIgnoreCase("remfromnet") && plugin.playerCanUseCommand(player, "autosort.remfromnet")) {
+        else if (commandName.equalsIgnoreCase("remfromnet") && plugin.playerHasPermission(player, "autosort.remfromnet")) {
             if (args.length > 1) {
                 String netName = args[0];
                 SortNetwork net = plugin.findNetwork(player.getName(), netName);
@@ -215,7 +215,7 @@ public class CommandHandler {
                     sender.sendMessage(count + " " + ChatColor.BLUE + "Player(s) successfully removed from the network.");
                     return true;
                 }
-                else if (net == null && plugin.playerCanUseCommand(player, "autosort.override")) {
+                else if (net == null && plugin.playerHasPermission(player, "autosort.override")) {
                     if (args.length > 2) {
                         netName = args[1];
                         String owner = args[0];
@@ -250,7 +250,7 @@ public class CommandHandler {
                 sender.sendMessage(ChatColor.RED + "Too few arguments! Usage: /remfromnet [netName] [players...]");
             }
         }
-        else if (commandName.equalsIgnoreCase("listasgroups") && plugin.playerCanUseCommand(player, "autosort.listasgroups")) {
+        else if (commandName.equalsIgnoreCase("listasgroups") && plugin.playerHasPermission(player, "autosort.listasgroups")) {
             sender.sendMessage(ChatColor.GOLD + "Custom AutoSort material groups:");
             List<ItemStack> items;
             StringBuilder list;
@@ -275,7 +275,7 @@ public class CommandHandler {
             }
             return true;
         }
-        else if (commandName.equalsIgnoreCase("asremnet") && plugin.playerCanUseCommand(player, "autosort.remnet")) {
+        else if (commandName.equalsIgnoreCase("asremnet") && plugin.playerHasPermission(player, "autosort.remnet")) {
             // /asremnet <OwnerName> <networkName>
             String ownerName = args[0];
             String netName = args[1];

@@ -209,12 +209,13 @@ public class AutoSortListener implements Listener {
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.isCancelled()) return;
         Block block = event.getClickedBlock();
+        if (block == null) return;
         Player player = event.getPlayer();
         String pName = player.getName();
         if (Util.isValidInventoryBlock(player, block, false) || isValidSign(block)) {
             SortNetwork sortNetwork = plugin.allNetworkBlocks.get(block);
             if (sortNetwork == null) return;
-            if (!pName.equalsIgnoreCase(sortNetwork.owner) && !sortNetwork.members.contains(pName) && !plugin.playerCanUseCommand(player, "autosort.override")) {
+            if (!pName.equalsIgnoreCase(sortNetwork.owner) && !sortNetwork.members.contains(pName) && !plugin.playerHasPermission(player, "autosort.override")) {
                 //Transaction Fail isnt owned by this player
                 player.sendMessage("This network is owned by " + ChatColor.YELLOW + sortNetwork.owner);
                 player.sendMessage(ChatColor.RED + "You can not access or modify this Network.");
@@ -271,10 +272,10 @@ public class AutoSortListener implements Listener {
         if (lines[0].startsWith("#") || lines[0].startsWith("*")) {
             netName = lines[0].substring(1);
             sortNetwork = plugin.findNetwork(player.getName(), netName);
-            if (sortNetwork == null && plugin.playerCanUseCommand(player, "autosort.create"))
+            if (sortNetwork == null && plugin.playerHasPermission(player, "autosort.create"))
                 sortNetwork = createNetwork(player, netName);
-            else if (!plugin.playerCanUseCommand(player, "autosort.create")) {
-                player.sendMessage(ChatColor.RED + "You don't have permission to create AutoSort networks!" + plugin.playerCanUseCommand(player, "autosort.create"));
+            else if (!plugin.playerHasPermission(player, "autosort.create")) {
+                player.sendMessage(ChatColor.RED + "You don't have permission to create AutoSort networks!" + plugin.playerHasPermission(player, "autosort.create"));
                 return;
             }
         }
@@ -283,7 +284,7 @@ public class AutoSortListener implements Listener {
         if (event.getBlock().getType().equals(Material.WALL_SIGN)) {
             Block signBlock = event.getBlock();
             if (lines[0].startsWith("#")) { //TODO Withdraw Chest
-                if (plugin.playerCanUseCommand(player, "autosort.use.withdraw")) {
+                if (plugin.playerHasPermission(player, "autosort.use.withdraw")) {
                     String option = lines[3].toUpperCase();
                     Block storageBlock = getDirection("", signBlock);
                     if (option.startsWith("D:")) {
@@ -294,7 +295,7 @@ public class AutoSortListener implements Listener {
                             int prox = getProximity(netName);
                             Location origin = getOrigin(sortNetwork.sortChests);
                             Location here = storageBlock.getLocation();
-                            if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
+                            if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerHasPermission(player, "autosort.ignoreproximity")) {
                                 NetworkItem netItem = new NetworkItem(sortNetwork, storageBlock, signBlock);
                                 sortNetwork.withdrawChests.put(storageBlock, netItem);
                                 plugin.allNetworkBlocks.put(signBlock, sortNetwork);
@@ -366,7 +367,7 @@ public class AutoSortListener implements Listener {
                                 int prox = getProximity(netName);
                                 Location origin = getOrigin(sortNetwork.sortChests);
                                 Location here = storageBlock.getLocation();
-                                if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
+                                if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerHasPermission(player, "autosort.ignoreproximity")) {
                                     event.setLine(1, "§fOpen Chest");
                                     event.setLine(2, "§fTo Deposit");
                                     player.sendMessage(ChatColor.AQUA + "Deposit chest added to " + sortNetwork.netName + ".");
@@ -403,12 +404,12 @@ public class AutoSortListener implements Listener {
                         if (Util.isValidInventoryBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
                             boolean dd = !mat.contains(":");
 
-                            if (plugin.playerCanUseCommand(player, "autosort.override") || sortNetwork.owner.equalsIgnoreCase(player.getName())) {
+                            if (plugin.playerHasPermission(player, "autosort.override") || sortNetwork.owner.equalsIgnoreCase(player.getName())) {
                                 if (!AutoSort.worldRestrict || sortNetwork.world.equalsIgnoreCase(signBlock.getWorld().getName().toLowerCase())) {
                                     int prox = getProximity(netName);
                                     Location origin = getOrigin(sortNetwork.sortChests);
                                     Location here = storageBlock.getLocation();
-                                    if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
+                                    if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerHasPermission(player, "autosort.ignoreproximity")) {
                                         player.sendMessage(ChatColor.AQUA + "Deposit chest added to " + sortNetwork.netName + ".");
                                         sortNetwork.sortChests.add(new SortChest(storageBlock, signBlock, mat, priority, dd));
                                         plugin.allNetworkBlocks.put(signBlock, sortNetwork);
@@ -444,14 +445,14 @@ public class AutoSortListener implements Listener {
             }
         }
         else if (event.getBlock().getType().equals(Material.SIGN_POST)) { // TODO Drop Sign
-            if (plugin.playerCanUseCommand(player, "autosort.use")) {
+            if (plugin.playerHasPermission(player, "autosort.use")) {
                 if (lines[0].startsWith("*")) {
                     Block sign = event.getBlock();
                     if (!AutoSort.worldRestrict || sortNetwork.world.equalsIgnoreCase(sign.getWorld().getName().toLowerCase())) {
                         int prox = getProximity(netName);
                         Location origin = getOrigin(sortNetwork.sortChests);
                         Location here = sign.getLocation();
-                        if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
+                        if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerHasPermission(player, "autosort.ignoreproximity")) {
                             NetworkItem netItem = new NetworkItem(sortNetwork, null, sign);
                             sortNetwork.dropSigns.put(sign, netItem);
                             plugin.allNetworkBlocks.put(sign, sortNetwork);
@@ -504,11 +505,7 @@ public class AutoSortListener implements Listener {
         if (block.getType().equals(Material.WALL_SIGN) || block.getType().equals(Material.SIGN_POST)) {
             String[] lines = ((Sign) block.getState()).getLines();
             if (lines[0].startsWith("*") || lines[0].startsWith("#")) {
-                if (plugin.findNetworkItemBySign(block) != null) {
-                    event.setCancelled(true);
-                    return;
-                }
-                if (findNetworkBySign(block) != null) {
+                if (plugin.allNetworkBlocks.containsKey(block)) {
                     event.setCancelled(true);
                     return;
                 }
@@ -527,7 +524,7 @@ public class AutoSortListener implements Listener {
         if (block.getType().equals(Material.SIGN_POST)) {
             network = plugin.allNetworkBlocks.get(block);
             if (network == null) return;
-            if (network.owner.equals(pName) || plugin.playerCanUseCommand(player, "autosort.override")) {
+            if (network.owner.equals(pName) || plugin.playerHasPermission(player, "autosort.override")) {
                 // Drop Sign
                 network.dropSigns.remove(block);
                 plugin.allNetworkBlocks.remove(block);
@@ -545,7 +542,7 @@ public class AutoSortListener implements Listener {
         else if (block.getType().equals(Material.WALL_SIGN)) {
             network = plugin.allNetworkBlocks.get(block);
             if (network == null) return;
-            if (network.owner.equals(pName) || plugin.playerCanUseCommand(player, "autosort.override")) {
+            if (network.owner.equals(pName) || plugin.playerHasPermission(player, "autosort.override")) {
                 sign = (Sign) block.getState();
                 String[] lines = sign.getLines();
                 Block storageBlock = getDirection("", block);
@@ -619,7 +616,7 @@ public class AutoSortListener implements Listener {
             network = plugin.allNetworkBlocks.get(block);
             if (network == null) network = plugin.allNetworkBlocks.get(Util.doubleChest(block));
             if (network == null) return;
-            if (network.owner.equals(pName) || plugin.playerCanUseCommand(player, "autosort.override")) {
+            if (network.owner.equals(pName) || plugin.playerHasPermission(player, "autosort.override")) {
 
                 if (network.depositChests.containsKey(block) || network.depositChests.containsKey(Util.doubleChest(block))) {
                     NetworkItem netItem = network.depositChests.get(block);
@@ -1049,16 +1046,6 @@ public class AutoSortListener implements Listener {
             if (pInt > 0 && pInt < 5) { return pInt; }
         }
         return -1;
-    }
-
-    private SortNetwork findNetworkBySign(Block sign) {
-        for(List<SortNetwork> nets : plugin.networks.values()) {
-            for(SortNetwork network : nets)
-                for(SortChest sc : network.sortChests) {
-                    if (sign.equals(sc.sign)) return network;
-                }
-        }
-        return null;
     }
 
     // Create a new network
