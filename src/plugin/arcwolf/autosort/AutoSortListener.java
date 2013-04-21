@@ -221,7 +221,7 @@ public class AutoSortListener implements Listener {
                 event.setCancelled(true);
             }
             else if (chestLock.containsValue(sortNetwork)) {
-                if ((sortNetwork.depositChests.containsKey(block) || sortNetwork.depositChests.containsKey(Util.doubleChest(block)))) return;
+                if (!(sortNetwork.withdrawChests.containsKey(block) || sortNetwork.withdrawChests.containsKey(Util.doubleChest(block)))) return;
 
                 String user = "";
                 for(Entry<String, SortNetwork> sortNet : chestLock.entrySet()) {
