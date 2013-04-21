@@ -284,14 +284,14 @@ public class CommandHandler {
             plugin.saveVersion5Network();
             return true;
         }
-        else if (commandName.equals("aswithdraw")){ //Test withdraw inventory.
+        else if (commandName.equals("aswithdraw")) { //Test withdraw inventory.
             //Inventory customInventory = Bukkit.createInventory(null, 9, "Test inventory");
             //((Player)sender).openInventory(customInventory);
             return true;
         }
         return false;
     }
-    
+
     public boolean inConsole(CommandSender sender, Command cmd, String commandLabel, String[] args) {
         String commandName = cmd.getName();
         if (commandName.equalsIgnoreCase("asreload")) {
@@ -477,31 +477,43 @@ public class CommandHandler {
     private void deleteNetwork(String ownerName, String netName, String whoDeleted) {
         SortNetwork network = plugin.findNetwork(ownerName, netName);
         List<Block> netItemsToDel = new ArrayList<Block>();
-        for(Entry<Block, NetworkItem> wchest : plugin.withdrawChests.entrySet()) {
+        for(Entry<Block, NetworkItem> wchest : network.withdrawChests.entrySet()) {
             if (wchest.getValue().network.equals(network)) {
+                plugin.allNetworkBlocks.remove(wchest.getValue().chest);
+                plugin.allNetworkBlocks.remove(Util.doubleChest(wchest.getValue().chest));
+                plugin.allNetworkBlocks.remove(wchest.getValue().sign);
                 updateSign(wchest.getValue().sign, netName, whoDeleted);
                 netItemsToDel.add(wchest.getKey());
             }
         }
-        for(Entry<Block, NetworkItem> dchest : plugin.depositChests.entrySet()) {
+        for(Entry<Block, NetworkItem> dchest : network.depositChests.entrySet()) {
             if (dchest.getValue().network.equals(network)) {
+                plugin.allNetworkBlocks.remove(dchest.getValue().chest);
+                plugin.allNetworkBlocks.remove(Util.doubleChest(dchest.getValue().chest));
+                plugin.allNetworkBlocks.remove(dchest.getValue().sign);
                 updateSign(dchest.getValue().sign, netName, whoDeleted);
                 netItemsToDel.add(dchest.getKey());
             }
         }
-        for(Entry<Block, NetworkItem> dsign : plugin.dropSigns.entrySet()) {
+        for(Entry<Block, NetworkItem> dsign : network.dropSigns.entrySet()) {
             if (dsign.getValue().network.equals(network)) {
+                plugin.allNetworkBlocks.remove(dsign.getValue().sign);
                 updateSign(dsign.getValue().sign, netName, whoDeleted);
                 netItemsToDel.add(dsign.getKey());
             }
         }
-        for(Block netBlock : netItemsToDel) {
-            plugin.depositChests.remove(netBlock);
-            plugin.withdrawChests.remove(netBlock);
-            plugin.dropSigns.remove(netBlock);
-        }
         for(SortChest chest : network.sortChests) {
+            plugin.allNetworkBlocks.remove(chest.block);
+            plugin.allNetworkBlocks.remove(Util.doubleChest(chest.block));
+            plugin.allNetworkBlocks.remove(chest.sign);
             updateSign(chest.sign, netName, whoDeleted);
+        }
+        for(Block netBlock : netItemsToDel) {
+            network.depositChests.remove(netBlock);
+            network.depositChests.remove(Util.doubleChest(netBlock));
+            network.withdrawChests.remove(netBlock);
+            network.withdrawChests.remove(Util.doubleChest(netBlock));
+            network.dropSigns.remove(netBlock);
         }
         plugin.networks.get(ownerName).remove(network);
     }

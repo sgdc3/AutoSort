@@ -70,30 +70,28 @@ public class SortTask implements Runnable {
         }
 
         try {
-            for(Entry<Block, NetworkItem> depChest : plugin.depositChests.entrySet()) {
-                if (depChest.getKey().getChunk().isLoaded()) {
-                    String netName = depChest.getValue().network.netName;
-                    String owner = depChest.getValue().network.owner;
-                    SortNetwork net = plugin.findNetwork(owner, netName);
-                    if (net != null && Util.isValidDepositWithdrawBlock(depChest.getKey())) {
-                        InventoryHolder chest = Util.getInventoryHolder(depChest.getKey());
-                        Inventory inv = chest.getInventory();
-                        ItemStack[] contents = inv.getContents();
-                        int i;
-                        ItemStack is;
-                        for(i = 0; i < contents.length; i++) {
-                            is = contents[i];
-                            if (is != null) {
-                                //System.out.println("[AutoSort] net = "+net+" is = "+is);
-                                if (net.sortItem(is)) {
-                                    contents[i] = null;
+            for(List<SortNetwork> networks : plugin.networks.values())
+                for(SortNetwork net : networks)
+                    for(Entry<Block, NetworkItem> depChest : net.depositChests.entrySet()) {
+                        if (depChest.getKey().getChunk().isLoaded()) {
+                            if (net != null && Util.isValidDepositWithdrawBlock(depChest.getKey())) {
+                                InventoryHolder chest = Util.getInventoryHolder(depChest.getKey());
+                                Inventory inv = chest.getInventory();
+                                ItemStack[] contents = inv.getContents();
+                                int i;
+                                ItemStack is;
+                                for(i = 0; i < contents.length; i++) {
+                                    is = contents[i];
+                                    if (is != null) {
+                                        if (net.sortItem(is)) {
+                                            contents[i] = null;
+                                        }
+                                    }
                                 }
+                                inv.setContents(contents);
                             }
                         }
-                        inv.setContents(contents);
                     }
-                }
-            }
         } catch (Exception e) {
             AutoSort.LOGGER.warning("[AutoSort] Error in DepositChests Sort Thread");
             e.printStackTrace();
@@ -171,8 +169,8 @@ public class SortTask implements Runnable {
 
     private void sortDropSign(Item item, Sign sign) {
         if (sign.getLine(0).startsWith("*")) {
-            NetworkItem ni = plugin.findNetworkItemBySign(sign.getBlock());
-            SortNetwork net = ni.network;
+            SortNetwork net = plugin.allNetworkBlocks.get(sign.getBlock());
+            if (net == null) return;
             if (net.sortItem(item.getItemStack())) {
                 item.remove();
             }

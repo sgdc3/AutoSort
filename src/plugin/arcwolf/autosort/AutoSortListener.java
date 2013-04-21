@@ -120,61 +120,59 @@ public class AutoSortListener implements Listener {
         Block block = null;
         Block lChest = null;
         Block rChest = null;
-        if (holder instanceof Chest) {
-            block = ((Chest) holder).getBlock();
-        }
-        else if (holder instanceof DoubleChest) {
-            DoubleChest dblchest = (DoubleChest) holder;
-            lChest = ((Chest) dblchest.getLeftSide()).getBlock();
-            rChest = ((Chest) dblchest.getRightSide()).getBlock();
-            if (plugin.withdrawChests.containsKey(lChest)) {
-                block = lChest;
-            }
-            else if (plugin.withdrawChests.containsKey(rChest)) {
-                block = rChest;
-            }
-        }
-        else
-            return;
+        SortNetwork sortNetwork = null;
         Player player = null;
         if (event.getPlayer() instanceof Player)
             player = (Player) event.getPlayer();
         else
             return;
-        if (block == null || player == null) return;
-        if (block.getState() instanceof Chest) {
-            SortNetwork sortNetwork = null;
-            String netName = "";
-            String owner = "";
-            if (plugin.withdrawChests.containsKey(block)) {
-                NetworkItem ni = plugin.withdrawChests.get(block);
-                netName = ni.network.netName;
-                owner = ni.network.owner;
-                sortNetwork = ni.network;
-            }
-            else {
-                return;
-            }
+        CustomPlayer settings = CustomPlayer.getSettings(player);
+        if (holder instanceof DoubleChest) {
+            DoubleChest dblchest = (DoubleChest) holder;
+            lChest = ((Chest) dblchest.getLeftSide()).getBlock();
+            rChest = ((Chest) dblchest.getRightSide()).getBlock();
+            sortNetwork = plugin.allNetworkBlocks.get(lChest);
+            if (sortNetwork == null) sortNetwork = plugin.allNetworkBlocks.get(rChest);
             if (sortNetwork == null) return;
+            if (sortNetwork.withdrawChests.containsKey(lChest)) {
+                settings.block = lChest;
+                block = lChest;
+            }
+            else if (sortNetwork.withdrawChests.containsKey(rChest)) {
+                settings.block = rChest;
+                block = rChest;
+            }
+            else
+                return;
+        }
+        else if (holder instanceof Chest) {
+            block = ((Chest) holder).getBlock();
+            sortNetwork = plugin.allNetworkBlocks.get(block);
+            if (sortNetwork == null) return;
+            if (sortNetwork.withdrawChests.containsKey(block))
+                settings.block = block;
+            else
+                return;
+        }
+        if (block == null || player == null || sortNetwork == null) return;
+        String netName = sortNetwork.netName;
+        String owner = sortNetwork.owner;
 
-            //Transaction Start
-            chestLock.put(player.getName(), sortNetwork);
-            CustomPlayer settings = CustomPlayer.getSettings(player);
-            settings.block = block;
-            settings.netName = netName;
-            settings.owner = owner;
-            settings.playerName = player.getName();
-            settings.sortNetwork = sortNetwork;
-            if (updateInventoryList(player, settings)) {
-                Collections.sort(settings.inventory, new IntegerComparator());
-                updateChestInventory(player, settings);
-            }
-            else {
-                player.sendMessage("The network - " + ChatColor.YELLOW + netName + ChatColor.WHITE + " - is empty.");
-                chestLock.remove(player.getName());
-                settings.clearPlayer();
-                event.setCancelled(true);
-            }
+        //Transaction Start
+        chestLock.put(player.getName(), sortNetwork);
+        settings.netName = netName;
+        settings.owner = owner;
+        settings.playerName = player.getName();
+        settings.sortNetwork = sortNetwork;
+        if (updateInventoryList(player, settings)) {
+            Collections.sort(settings.inventory, new IntegerComparator());
+            updateChestInventory(player, settings);
+        }
+        else {
+            player.sendMessage("The network - " + ChatColor.YELLOW + netName + ChatColor.WHITE + " - is empty.");
+            chestLock.remove(player.getName());
+            settings.clearPlayer();
+            event.setCancelled(true);
         }
     }
 
@@ -214,37 +212,20 @@ public class AutoSortListener implements Listener {
         Player player = event.getPlayer();
         String pName = player.getName();
         if (Util.isValidInventoryBlock(player, block, false) || isValidSign(block)) {
-            NetworkItem netItem = null;
-            if (plugin.withdrawChests.containsKey(block))
-                netItem = plugin.withdrawChests.get(block);
-            else if (plugin.withdrawChests.containsKey(doubleChest(block)))
-                netItem = plugin.withdrawChests.get(doubleChest(block));
-            SortNetwork net = null;
-            if (netItem == null) {
-                netItem = plugin.depositChests.get(block);
-            }
-
-            if (netItem == null) {
-                net = findNetworkBySortChest(block);
-                if (net == null) net = findNetworkBySortChest(doubleChest(block));
-            }
-            else {
-                net = netItem.network;
-            }
-
-            if (netItem == null && net == null) return;
-            if (!pName.equalsIgnoreCase(net.owner) && !net.members.contains(pName) && !plugin.playerCanUseCommand(player, "autosort.override")) {
+            SortNetwork sortNetwork = plugin.allNetworkBlocks.get(block);
+            if (sortNetwork == null) return;
+            if (!pName.equalsIgnoreCase(sortNetwork.owner) && !sortNetwork.members.contains(pName) && !plugin.playerCanUseCommand(player, "autosort.override")) {
                 //Transaction Fail isnt owned by this player
-                player.sendMessage("This network is owned by " + ChatColor.YELLOW + net.owner);
+                player.sendMessage("This network is owned by " + ChatColor.YELLOW + sortNetwork.owner);
                 player.sendMessage(ChatColor.RED + "You can not access or modify this Network.");
                 event.setCancelled(true);
             }
-            else if (chestLock.containsValue(net)) {
-                if (netItem == null || (plugin.depositChests.containsKey(block) || plugin.depositChests.containsKey(doubleChest(block)))) return;
+            else if (chestLock.containsValue(sortNetwork)) {
+                if ((sortNetwork.depositChests.containsKey(block) || sortNetwork.depositChests.containsKey(Util.doubleChest(block)))) return;
 
                 String user = "";
                 for(Entry<String, SortNetwork> sortNet : chestLock.entrySet()) {
-                    if (sortNet.getValue().equals(net)) {
+                    if (sortNet.getValue().equals(sortNetwork)) {
                         user = sortNet.getKey();
                         break;
                     }
@@ -314,7 +295,11 @@ public class AutoSortListener implements Listener {
                             Location origin = getOrigin(sortNetwork.sortChests);
                             Location here = storageBlock.getLocation();
                             if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
-                                plugin.withdrawChests.put(storageBlock, new NetworkItem(sortNetwork, storageBlock, signBlock));
+                                NetworkItem netItem = new NetworkItem(sortNetwork, storageBlock, signBlock);
+                                sortNetwork.withdrawChests.put(storageBlock, netItem);
+                                plugin.allNetworkBlocks.put(signBlock, sortNetwork);
+                                plugin.allNetworkBlocks.put(storageBlock, sortNetwork);
+                                plugin.allNetworkBlocks.put(Util.doubleChest(storageBlock), sortNetwork);
                                 event.setLine(1, "§fOpen Chest");
                                 event.setLine(2, "§fTo Withdraw");
                                 player.sendMessage(ChatColor.AQUA + "Withdraw chest added to network " + netName + ".");
@@ -385,7 +370,11 @@ public class AutoSortListener implements Listener {
                                     event.setLine(1, "§fOpen Chest");
                                     event.setLine(2, "§fTo Deposit");
                                     player.sendMessage(ChatColor.AQUA + "Deposit chest added to " + sortNetwork.netName + ".");
-                                    plugin.depositChests.put(storageBlock, new NetworkItem(sortNetwork, storageBlock, signBlock));
+                                    NetworkItem netItem = new NetworkItem(sortNetwork, storageBlock, signBlock);
+                                    sortNetwork.depositChests.put(storageBlock, netItem);
+                                    plugin.allNetworkBlocks.put(signBlock, sortNetwork);
+                                    plugin.allNetworkBlocks.put(storageBlock, sortNetwork);
+                                    plugin.allNetworkBlocks.put(Util.doubleChest(storageBlock), sortNetwork);
                                 }
                                 else {
                                     player.sendMessage(ChatColor.RED + "You can only place chests within " + prox + " blocks of the original chest!");
@@ -422,6 +411,9 @@ public class AutoSortListener implements Listener {
                                     if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
                                         player.sendMessage(ChatColor.AQUA + "Deposit chest added to " + sortNetwork.netName + ".");
                                         sortNetwork.sortChests.add(new SortChest(storageBlock, signBlock, mat, priority, dd));
+                                        plugin.allNetworkBlocks.put(signBlock, sortNetwork);
+                                        plugin.allNetworkBlocks.put(storageBlock, sortNetwork);
+                                        plugin.allNetworkBlocks.put(Util.doubleChest(storageBlock), sortNetwork);
                                         player.sendMessage(ChatColor.AQUA + "Sort chest with material(s) " + mat + " and priority " + priority + " added to network " + netName + ".");
                                     }
                                     else {
@@ -460,7 +452,9 @@ public class AutoSortListener implements Listener {
                         Location origin = getOrigin(sortNetwork.sortChests);
                         Location here = sign.getLocation();
                         if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerCanUseCommand(player, "autosort.ignoreproximity")) {
-                            plugin.dropSigns.put(sign, new NetworkItem(sortNetwork, null, sign));
+                            NetworkItem netItem = new NetworkItem(sortNetwork, null, sign);
+                            sortNetwork.dropSigns.put(sign, netItem);
+                            plugin.allNetworkBlocks.put(sign, sortNetwork);
                             player.sendMessage(ChatColor.BLUE + "Drop Sign added to network " + netName + ".");
                             event.setLine(1, "§fDrop Items");
                             event.setLine(2, "§fOn Sign");
@@ -483,14 +477,10 @@ public class AutoSortListener implements Listener {
     public void onFurnaceSmelt(FurnaceSmeltEvent event) {
         if (event.isCancelled()) return;
         Block block = event.getBlock();
-        if (plugin.depositChests.containsKey(block)) {
-            NetworkItem netItem = plugin.depositChests.get(block);
-            SortNetwork sortNetwork = null;
-            if (netItem != null)
-                sortNetwork = netItem.network;
-            else
-                return;
-            if (sortNetwork == null) return;
+        SortNetwork sortNetwork = plugin.allNetworkBlocks.get(block);
+        if (sortNetwork == null) return;
+        if (sortNetwork.depositChests.containsKey(block)) {
+            NetworkItem netItem = sortNetwork.depositChests.get(block);
             Sign sign = (Sign) netItem.sign.getState();
             if (sign.getLine(0).startsWith("*")) {
                 ItemStack is = event.getResult();
@@ -533,85 +523,70 @@ public class AutoSortListener implements Listener {
         Sign sign = null;
         Player player = event.getPlayer();
         String pName = player.getName();
-
-        if (block.getType().equals(Material.WALL_SIGN) || block.getType().equals(Material.SIGN_POST)) {
-            sign = (Sign) block.getState();
-            String[] lines = sign.getLines();
-            Block storageBlock = getDirection("", block);
-            String[] options = { lines[3].toUpperCase() };
-            if (lines[3].contains(" ")) {
-                options = lines[3].toUpperCase().split(" ");
+        SortNetwork network = null;
+        if (block.getType().equals(Material.SIGN_POST)) {
+            network = plugin.allNetworkBlocks.get(block);
+            if (network == null) return;
+            if (network.owner.equals(pName) || plugin.playerCanUseCommand(player, "autosort.override")) {
+                // Drop Sign
+                network.dropSigns.remove(block);
+                plugin.allNetworkBlocks.remove(block);
+                network.dropSigns.remove(block);
+                event.getPlayer().sendMessage(ChatColor.BLUE + "Drop sign removed.");
+                return;
             }
-            for(String opt : options) {
-                if (opt.startsWith("D:")) {
-                    storageBlock = getDirection(opt.split(":")[1], block);
+            else {
+                event.getPlayer().sendMessage("This network is owned by " + ChatColor.YELLOW + network.owner);
+                event.getPlayer().sendMessage(ChatColor.RED + "You can't modify this network.");
+                event.setCancelled(true);
+                return;
+            }
+        }
+        else if (block.getType().equals(Material.WALL_SIGN)) {
+            network = plugin.allNetworkBlocks.get(block);
+            if (network == null) return;
+            if (network.owner.equals(pName) || plugin.playerCanUseCommand(player, "autosort.override")) {
+                sign = (Sign) block.getState();
+                String[] lines = sign.getLines();
+                Block storageBlock = getDirection("", block);
+                String[] options = { lines[3].toUpperCase() };
+                if (lines[3].contains(" ")) {
+                    options = lines[3].toUpperCase().split(" ");
                 }
-            }
-            if (lines[0].startsWith("*")) {
-                // Deposit or Sort Chest
-                SortNetwork sortNetwork = null;
-                NetworkItem netItem = null;
-                if (lines[1].equals("§fOpen Chest") || lines[1].equals("§fDrop Items")) {
-                    // Deposit Chest
-                    sortNetwork = findNetworkBySign(block);
-                    if (sortNetwork == null) {
-                        // Drop Sign
-                        netItem = plugin.findNetworkItemBySign(block);
-                        if (netItem != null) {
-                            sortNetwork = netItem.network;
-                        }
-                        else
-                            return;
+                for(String opt : options) {
+                    if (opt.startsWith("D:")) {
+                        storageBlock = getDirection(opt.split(":")[1], block);
                     }
                 }
-                else {
-                    // Sort Chest
-                    sortNetwork = findNetworkBySign(block);
-                    if (sortNetwork == null) return;
-                }
-
-                if (sortNetwork.owner.equals(pName) || plugin.playerCanUseCommand(player, "autosort.override")) {
-                    if (netItem != null) {
-                        if (plugin.depositChests.remove(storageBlock) != null) {
-                            event.getPlayer().sendMessage(ChatColor.BLUE + "Deposit chest removed.");
-                            return;
-                        }
-                        if (plugin.dropSigns.remove(block) != null) {
-                            event.getPlayer().sendMessage(ChatColor.BLUE + "Drop sign removed.");
-                            return;
-                        }
+                if (lines[0].startsWith("*")) {
+                    // Deposit or Sort Chest
+                    if (lines[1].equals("§fOpen Chest")) {
+                        // Deposit Chest
+                        plugin.allNetworkBlocks.remove(block);
+                        plugin.allNetworkBlocks.remove(storageBlock);
+                        plugin.allNetworkBlocks.remove(Util.doubleChest(storageBlock));
+                        network.depositChests.remove(storageBlock);
+                        network.depositChests.remove(Util.doubleChest(storageBlock));
+                        event.getPlayer().sendMessage(ChatColor.BLUE + "Deposit chest removed.");
+                        return;
                     }
                     else {
-                        SortChest sc = sortNetwork.findSortChest(storageBlock);
-                        if (sortNetwork.sortChests.remove(sc)) {
-                            event.getPlayer().sendMessage(ChatColor.BLUE + "Sort chest removed.");
-                            return;
-                        }
+                        // Sort Chest
+                        SortChest sc = network.findSortChest(storageBlock);
+                        plugin.allNetworkBlocks.remove(sc.block);
+                        plugin.allNetworkBlocks.remove(Util.doubleChest(sc.block));
+                        plugin.allNetworkBlocks.remove(sc.sign);
+                        network.sortChests.remove(sc);
+                        event.getPlayer().sendMessage(ChatColor.BLUE + "Sort chest removed.");
+                        return;
                     }
                 }
-                else {
-                    event.getPlayer().sendMessage("This network is owned by " + ChatColor.YELLOW + sortNetwork.owner);
-                    event.getPlayer().sendMessage(ChatColor.RED + "You can't modify this network.");
-                    event.setCancelled(true);
-                    return;
-                }
-            }
-            else if (lines[0].startsWith("#")) {
-                // Withdraw Chest
-                SortNetwork sortNetwork = null;
-                NetworkItem netItem = plugin.findNetworkItemBySign(block);
-                if (netItem != null) {
-                    sortNetwork = netItem.network;
-                }
-                else
-                    return;
-
-                if (sortNetwork.owner.equals(pName) || plugin.playerCanUseCommand(player, "autosort.override")) {
-                    SortNetwork net = plugin.withdrawChests.get(storageBlock).network;
-                    if (chestLock.containsValue(net)) {
+                else if (lines[0].startsWith("#")) {
+                    // Withdraw Chest
+                    if (chestLock.containsValue(network)) {
                         String user = "";
                         for(Entry<String, SortNetwork> sortNet : chestLock.entrySet()) {
-                            if (sortNet.getValue().equals(net)) {
+                            if (sortNet.getValue().equals(network)) {
                                 user = sortNet.getKey();
                                 break;
                             }
@@ -622,107 +597,107 @@ public class AutoSortListener implements Listener {
                         event.setCancelled(true);
                         return;
                     }
-                    else if (plugin.withdrawChests.remove(storageBlock) != null) {
+                    else {
+                        plugin.allNetworkBlocks.remove(block);
+                        plugin.allNetworkBlocks.remove(storageBlock);
+                        plugin.allNetworkBlocks.remove(Util.doubleChest(storageBlock));
+                        network.withdrawChests.remove(storageBlock);
+                        network.withdrawChests.remove(Util.doubleChest(storageBlock));
+                        event.getPlayer().sendMessage(ChatColor.BLUE + "Withdraw chest removed.");
+                        return;
+                    }
+                }
+            }
+            else {
+                event.getPlayer().sendMessage("This network is owned by " + ChatColor.YELLOW + network.owner);
+                event.getPlayer().sendMessage(ChatColor.RED + "You can't modify this network.");
+                event.setCancelled(true);
+                return;
+            }
+        }
+        else if (Util.isValidInventoryBlock(player, block, false)) {
+            network = plugin.allNetworkBlocks.get(block);
+            if (network == null) network = plugin.allNetworkBlocks.get(Util.doubleChest(block));
+            if (network == null) return;
+            if (network.owner.equals(pName) || plugin.playerCanUseCommand(player, "autosort.override")) {
+
+                if (network.depositChests.containsKey(block) || network.depositChests.containsKey(Util.doubleChest(block))) {
+                    NetworkItem netItem = network.depositChests.get(block);
+                    if (netItem == null) netItem = network.depositChests.get(Util.doubleChest(block));
+                    if (netItem == null) return;
+                    Block signBlock = netItem.sign;
+                    if (signBlock.getType().equals(Material.WALL_SIGN)) {
+                        Sign chestSign = (Sign) signBlock.getState();
+                        for(int line = 0; line < 4; line++)
+                            chestSign.setLine(line, "");
+                        chestSign.update();
+                    }
+                    plugin.allNetworkBlocks.remove(block);
+                    plugin.allNetworkBlocks.remove(Util.doubleChest(block));
+                    plugin.allNetworkBlocks.remove(signBlock);
+                    network.depositChests.remove(block);
+                    network.depositChests.remove(Util.doubleChest(block));
+                    event.getPlayer().sendMessage(ChatColor.BLUE + "Deposit chest removed.");
+                }
+                else if (network.withdrawChests.containsKey(block) || network.withdrawChests.containsKey(block)) {
+                    if (chestLock.containsValue(network)) {
+                        String user = "";
+                        for(Entry<String, SortNetwork> sortNet : chestLock.entrySet()) {
+                            if (sortNet.getValue().equals(network)) {
+                                user = sortNet.getKey();
+                                break;
+                            }
+                        }
+                        //Transaction Fail someone else is using the withdraw function
+                        player.sendMessage("This network is being withdrawn from by " + ChatColor.YELLOW + user);
+                        player.sendMessage(ChatColor.GOLD + "Please wait...");
+                        event.setCancelled(true);
+                        return;
+                    }
+                    else {
+                        CustomPlayer settings = CustomPlayer.getSettings(event.getPlayer());
+                        settings.clearPlayer();
+                        NetworkItem netItem = network.withdrawChests.get(block);
+                        if (netItem == null) netItem = network.withdrawChests.get(Util.doubleChest(block));
+                        if (netItem == null) return;
+                        Block signBlock = network.withdrawChests.get(block).sign;
+                        if (signBlock.getType().equals(Material.WALL_SIGN)) {
+                            Sign chestSign = (Sign) signBlock.getState();
+                            for(int line = 0; line < 4; line++)
+                                chestSign.setLine(line, "");
+                            chestSign.update();
+                        }
+                        plugin.allNetworkBlocks.remove(block);
+                        plugin.allNetworkBlocks.remove(Util.doubleChest(block));
+                        plugin.allNetworkBlocks.remove(signBlock);
+                        network.withdrawChests.remove(block);
                         event.getPlayer().sendMessage(ChatColor.BLUE + "Withdraw chest removed.");
                         return;
                     }
                 }
                 else {
-                    event.getPlayer().sendMessage("This network is owned by " + ChatColor.YELLOW + sortNetwork.owner);
-                    event.getPlayer().sendMessage(ChatColor.RED + "You can't modify this network.");
-                    event.setCancelled(true);
-                    return;
-                }
-            }
-        }
-        else if (Util.isValidInventoryBlock(player, block, false)) {
-            SortNetwork sortNetwork = findNetworkBySortChest(block);
-            if (sortNetwork == null) {
-                sortNetwork = findNetworkBySortChest(doubleChest(block));
-                block = doubleChest(block);
-            }
-            if (sortNetwork != null) {
-                if (sortNetwork.owner.equals(pName) || plugin.playerCanUseCommand(player, "autosort.override")) {
-                    SortChest sortChest = sortNetwork.findSortChest(block);
+                    SortChest sortChest = network.findSortChest(block);
+                    if (sortChest == null) sortChest = network.findSortChest(Util.doubleChest(block));
+                    if (sortChest == null) return;
                     if (sortChest.sign.getType().equals(Material.WALL_SIGN)) {
                         Sign chestSign = (Sign) sortChest.sign.getState();
                         for(int line = 0; line < 4; line++)
                             chestSign.setLine(line, "");
                         chestSign.update();
                     }
-                    sortNetwork.sortChests.remove(sortChest);
+                    plugin.allNetworkBlocks.remove(block);
+                    plugin.allNetworkBlocks.remove(Util.doubleChest(block));
+                    plugin.allNetworkBlocks.remove(sortChest.sign);
+                    network.sortChests.remove(sortChest);
                     event.getPlayer().sendMessage(ChatColor.BLUE + "Sort chest removed.");
                     return;
                 }
-                else {
-                    event.getPlayer().sendMessage("This network is owned by " + ChatColor.YELLOW + sortNetwork.owner);
-                    event.getPlayer().sendMessage(ChatColor.RED + "You can't modify this network.");
-                    event.setCancelled(true);
-                    return;
-                }
             }
-            else if (plugin.depositChests.containsKey(block) || plugin.depositChests.containsKey(doubleChest(block))) {
-                if (plugin.depositChests.containsKey(doubleChest(block)))
-                    block = doubleChest(block);
-                String owner = plugin.depositChests.get(block).network.owner;
-                if (plugin.depositChests.get(block).network.owner.equals(pName) || plugin.playerCanUseCommand(player, "autosort.override")) {
-                    Block blockSign = plugin.depositChests.get(block).sign;
-                    if (blockSign.getType().equals(Material.WALL_SIGN)) {
-                        Sign chestSign = (Sign) blockSign.getState();
-                        for(int line = 0; line < 4; line++)
-                            chestSign.setLine(line, "");
-                        chestSign.update();
-                    }
-                    plugin.depositChests.remove(block);
-                    event.getPlayer().sendMessage(ChatColor.BLUE + "Deposit chest removed.");
-                    return;
-                }
-                else {
-                    event.getPlayer().sendMessage("This network is owned by " + ChatColor.YELLOW + owner);
-                    event.getPlayer().sendMessage(ChatColor.RED + "You can't modify this network.");
-                    event.setCancelled(true);
-                    return;
-                }
-            }
-            else if (plugin.withdrawChests.containsKey(block) || plugin.withdrawChests.containsKey(doubleChest(block))) {
-                if (plugin.withdrawChests.containsKey(doubleChest(block)))
-                    block = doubleChest(block);
-                String owner = plugin.withdrawChests.get(block).network.owner;
-                SortNetwork net = plugin.withdrawChests.get(block).network;
-                if (chestLock.containsValue(net)) {
-                    String user = "";
-                    for(Entry<String, SortNetwork> sortNet : chestLock.entrySet()) {
-                        if (sortNet.getValue().equals(net)) {
-                            user = sortNet.getKey();
-                            break;
-                        }
-                    }
-                    //Transaction Fail someone else is using the withdraw function
-                    player.sendMessage("This network is being withdrawn from by " + ChatColor.YELLOW + user);
-                    player.sendMessage(ChatColor.GOLD + "Please wait...");
-                    event.setCancelled(true);
-                    return;
-                }
-                else if (net.owner.equals(pName) || plugin.playerCanUseCommand(player, "autosort.override")) {
-                    CustomPlayer settings = CustomPlayer.getSettings(event.getPlayer());
-                    settings.clearPlayer();
-                    Block blockSign = plugin.withdrawChests.get(block).sign;
-                    if (blockSign.getType().equals(Material.WALL_SIGN)) {
-                        Sign chestSign = (Sign) blockSign.getState();
-                        for(int line = 0; line < 4; line++)
-                            chestSign.setLine(line, "");
-                        chestSign.update();
-                    }
-                    plugin.withdrawChests.remove(block);
-                    event.getPlayer().sendMessage(ChatColor.BLUE + "Withdraw chest removed.");
-                    return;
-                }
-                else {
-                    event.getPlayer().sendMessage("This network is owned by " + ChatColor.YELLOW + owner);
-                    event.getPlayer().sendMessage(ChatColor.RED + "You can't modify this network.");
-                    event.setCancelled(true);
-                    return;
-                }
+            else {
+                event.getPlayer().sendMessage("This network is owned by " + ChatColor.YELLOW + network.owner);
+                event.getPlayer().sendMessage(ChatColor.RED + "You can't modify this network.");
+                event.setCancelled(true);
+                return;
             }
         }
     }
@@ -881,37 +856,13 @@ public class AutoSortListener implements Listener {
     private boolean hopperDropperStopper(List<Block> blocksToTest, Player player) {
         String owner = player.getName();
         for(Block testBlock : blocksToTest) {
-            NetworkItem depChest = plugin.depositChests.get(testBlock);
-            if (depChest == null) depChest = plugin.depositChests.get(doubleChest(testBlock));
-            if (depChest != null) {
-                SortNetwork sortNet = depChest.network;
+            if (!Util.isValidInventoryBlock(testBlock)) continue;
+            SortNetwork sortNet = plugin.allNetworkBlocks.get(testBlock);
+            if (sortNet != null) {
                 if (!owner.equals(sortNet.owner)) {
                     player.sendMessage("This network is owned by " + ChatColor.YELLOW + sortNet.owner);
                     player.sendMessage(ChatColor.RED + "You can not access or modify this Network.");
                     return true;
-                }
-            }
-            NetworkItem withChest = plugin.withdrawChests.get(testBlock);
-            if (withChest == null) withChest = plugin.withdrawChests.get(doubleChest(testBlock));
-            if (withChest != null) {
-                SortNetwork sortNet = withChest.network;
-                if (!owner.equals(sortNet.owner)) {
-                    player.sendMessage("This network is owned by " + ChatColor.YELLOW + sortNet.owner);
-                    player.sendMessage(ChatColor.RED + "You can not access or modify this Network.");
-                    return true;
-                }
-            }
-            List<SortNetwork> sortNet = plugin.networks.get(owner);
-            if (sortNet == null) return false;
-            for(SortNetwork network : sortNet) {
-                for(SortChest chest : network.sortChests) {
-                    if (chest.block.equals(testBlock) || chest.block.equals(doubleChest(testBlock))) {
-                        if (!owner.equals(network.owner)) {
-                            player.sendMessage("This network is owned by " + ChatColor.YELLOW + network.owner);
-                            player.sendMessage(ChatColor.RED + "You can not access or modify this Network.");
-                            return true;
-                        }
-                    }
                 }
             }
         }
@@ -919,16 +870,11 @@ public class AutoSortListener implements Listener {
     }
 
     private boolean doubleChestPlaceChest(Material mat, Block block, Player player) {
-        Block blockToTest = doubleChest(block);
+        Block blockToTest = Util.doubleChest(block);
         if (blockToTest.getType().equals(mat)) {
-            SortNetwork net = null;
-            NetworkItem netItem = plugin.depositChests.get(blockToTest);
-            if (netItem == null) netItem = plugin.withdrawChests.get(blockToTest);
-            if (netItem == null)
-                net = findNetworkBySortChest(blockToTest);
-            else
-                net = netItem.network;
+            SortNetwork net = plugin.allNetworkBlocks.get(blockToTest);
             if (net == null) return false;
+
             if (!net.owner.equals(player.getName())) {
                 player.sendMessage("This network is owned by " + ChatColor.YELLOW + net.owner);
                 player.sendMessage(ChatColor.RED + "You can not access or modify this Network.");
@@ -947,6 +893,8 @@ public class AutoSortListener implements Listener {
                 player.sendMessage(ChatColor.GOLD + "Please wait...");
                 return true;
             }
+            else if (net.owner.equals(player.getName()))
+                    plugin.allNetworkBlocks.put(block, net);
         }
         return false;
     }
@@ -979,17 +927,6 @@ public class AutoSortListener implements Listener {
                 break;
         }
         return blocksToTest;
-    }
-
-    private Block doubleChest(Block block) {
-        if (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST)) {
-            BlockFace[] surchest = { BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST };
-            for(BlockFace face : surchest) {
-                Block otherHalf = block.getRelative(face);
-                if (otherHalf.getType().equals(block.getType())) { return otherHalf; }
-            }
-        }
-        return block;
     }
 
     private Block findHopper(Block block) {
@@ -1114,16 +1051,6 @@ public class AutoSortListener implements Listener {
         return -1;
     }
 
-    private SortNetwork findNetworkBySortChest(Block chest) {
-        for(List<SortNetwork> nets : plugin.networks.values()) {
-            for(SortNetwork network : nets)
-                for(SortChest sc : network.sortChests) {
-                    if (chest.equals(sc.block)) return network;
-                }
-        }
-        return null;
-    }
-
     private SortNetwork findNetworkBySign(Block sign) {
         for(List<SortNetwork> nets : plugin.networks.values()) {
             for(SortNetwork network : nets)
@@ -1151,7 +1078,7 @@ public class AutoSortListener implements Listener {
     }
 
     private boolean isInNetwork(Player player, Block storageBlock) {
-        if (findNetworkBySortChest(storageBlock) != null || findNetworkBySortChest(doubleChest(storageBlock)) != null || plugin.withdrawChests.containsKey(storageBlock) || plugin.withdrawChests.containsKey(doubleChest(storageBlock)) || plugin.depositChests.containsKey(storageBlock) || plugin.depositChests.containsKey(doubleChest(storageBlock))) {
+        if (plugin.allNetworkBlocks.containsKey(storageBlock)) {
             player.sendMessage(ChatColor.RED + "You can't add this chest, it is already in a network!");
             return true;
         }

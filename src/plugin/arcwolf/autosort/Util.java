@@ -134,4 +134,15 @@ public class Util {
         else
             return null;
     }
+
+    public static Block doubleChest(Block block) {
+        if (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST)) {
+            BlockFace[] surchest = { BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST };
+            for(BlockFace face : surchest) {
+                Block otherHalf = block.getRelative(face);
+                if (otherHalf.getType().equals(block.getType())) { return otherHalf; }
+            }
+        }
+        return block;
+    }
 }

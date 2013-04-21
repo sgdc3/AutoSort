@@ -3,6 +3,7 @@ package plugin.arcwolf.autosort.Network;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +43,9 @@ public class SortNetwork {
     public String world = "";
 
     public List<SortChest> sortChests = new ArrayList<SortChest>();
+    public Map<Block, NetworkItem> depositChests = new HashMap<Block, NetworkItem>();
+    public Map<Block, NetworkItem> withdrawChests = new HashMap<Block, NetworkItem>();
+    public Map<Block, NetworkItem> dropSigns = new HashMap<Block, NetworkItem>();
 
     /**
      * 

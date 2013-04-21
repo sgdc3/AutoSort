@@ -54,10 +54,7 @@ public class AutoSort extends JavaPlugin {
     public List<Item> items = new ArrayList<Item>();
     public List<Item> stillItems = new ArrayList<Item>();
 
-    public Map<Block, NetworkItem> depositChests = new HashMap<Block, NetworkItem>();
-    public Map<Block, NetworkItem> withdrawChests = new HashMap<Block, NetworkItem>();
-    public Map<Block, NetworkItem> dropSigns = new HashMap<Block, NetworkItem>();
-
+    public Map<Block, SortNetwork> allNetworkBlocks = new HashMap<Block, SortNetwork>();
     public Map<String, List<SortNetwork>> networks = new HashMap<String, List<SortNetwork>>();
 
     public static Map<String, List<ItemStack>> customMatGroups = new HashMap<String, List<ItemStack>>();
@@ -112,6 +109,10 @@ public class AutoSort extends JavaPlugin {
         loadCustomGroups();
         v4Loaded = loadVersion4Save();
         if (!v4Loaded) {
+            loadVersion5Save();
+        }
+        else {
+            saveVersion5Network();
             loadVersion5Save();
         }
 
@@ -363,7 +364,7 @@ public class AutoSort extends JavaPlugin {
                             LOGGER.warning(pluginName + ": Could not find network to add dropchest to.");
                         }
                         NetworkItem netItem = new NetworkItem(network, loc.getBlock(), sign);
-                        depositChests.put(loc.getBlock(), netItem);
+                        network.depositChests.put(loc.getBlock(), netItem);
                     }
                 }
             }
@@ -388,7 +389,7 @@ public class AutoSort extends JavaPlugin {
                             break;
                         }
                         NetworkItem netItem = new NetworkItem(network, loc.getBlock(), sign);
-                        withdrawChests.put(loc.getBlock(), netItem);
+                        network.withdrawChests.put(loc.getBlock(), netItem);
                     }
                 }
             }
@@ -434,6 +435,9 @@ public class AutoSort extends JavaPlugin {
                                 boolean disregardDamage = cSec.getBoolean("DisregardDamage");
 
                                 net.sortChests.add(new SortChest(chest, sign, signText, priority, disregardDamage));
+                                allNetworkBlocks.put(chest, net);
+                                allNetworkBlocks.put(Util.doubleChest(chest), net);
+                                allNetworkBlocks.put(sign, net);
                             }
                             else {
                                 LOGGER.warning(pluginName + ": SortChest Sign Didnt exist at " + signLoc.getBlockX() + "," + signLoc.getBlockY() + "," + signLoc.getBlockZ() + ":" + signLoc.getWorld().getName());
@@ -470,7 +474,11 @@ public class AutoSort extends JavaPlugin {
 
                                 if (signLoc.getBlock().getState() instanceof Sign) {
                                     Block sign = signLoc.getBlock();
-                                    depositChests.put(chest, new NetworkItem(net, chest, sign));
+                                    NetworkItem netItem = new NetworkItem(net, chest, sign);
+                                    net.depositChests.put(chest, netItem);
+                                    allNetworkBlocks.put(chest, net);
+                                    allNetworkBlocks.put(Util.doubleChest(chest), net);
+                                    allNetworkBlocks.put(sign, net);
                                 }
                                 else {
                                     LOGGER.warning(pluginName + ": SortChest Sign Didnt exist at " + signLoc.getBlockX() + "," + signLoc.getBlockY() + "," + signLoc.getBlockZ() + ":" + signLoc.getWorld().getName());
@@ -503,7 +511,11 @@ public class AutoSort extends JavaPlugin {
                                 Location signLoc = new Location(world, Integer.parseInt(signData[1]), Integer.parseInt(signData[2]), Integer.parseInt(signData[3]));
                                 if (signLoc.getBlock().getState() instanceof Sign) {
                                     Block sign = signLoc.getBlock();
-                                    withdrawChests.put(chest, new NetworkItem(net, chest, sign));
+                                    NetworkItem netItem = new NetworkItem(net, chest, sign);
+                                    net.withdrawChests.put(chest, netItem);
+                                    allNetworkBlocks.put(chest, net);
+                                    allNetworkBlocks.put(Util.doubleChest(chest), net);
+                                    allNetworkBlocks.put(sign, net);
                                 }
                                 else {
                                     LOGGER.warning(pluginName + ": SortChest Sign Didnt exist at " + signLoc.getBlockX() + "," + signLoc.getBlockY() + "," + signLoc.getBlockZ() + ":" + signLoc.getWorld().getName());
@@ -530,7 +542,9 @@ public class AutoSort extends JavaPlugin {
                                 Location dSignLoc = new Location(world, Integer.parseInt(dSignData[1]), Integer.parseInt(dSignData[2]), Integer.parseInt(dSignData[3]));
                                 Block sign = dSignLoc.getBlock();
                                 if (sign.getState() instanceof Sign) {
-                                    dropSigns.put(sign, new NetworkItem(net, null, sign));
+                                    NetworkItem netItem = new NetworkItem(net, null, sign);
+                                    net.dropSigns.put(sign, netItem);
+                                    allNetworkBlocks.put(sign, net);
                                 }
                                 else {
                                     LOGGER.warning(pluginName + ": Drop Sign Didnt exist at " + dSignLoc.getBlockX() + "," + dSignLoc.getBlockY() + "," + dSignLoc.getBlockZ() + ":" + dSignLoc.getWorld().getName());
@@ -550,127 +564,121 @@ public class AutoSort extends JavaPlugin {
     }
 
     public void cleanupNetwork() {
-        List<Block> removeDepositChests = new ArrayList<Block>();
-        for(NetworkItem netItem : depositChests.values()) {
-            Block chest = netItem.chest;
-            Block sign = netItem.sign;
-            if (!chest.getChunk().isLoaded()) chest.getChunk().load();
-            if (!sign.getChunk().isLoaded()) sign.getChunk().load();
-            if (!Util.isValidDepositWithdrawBlock(chest)) {
-                removeDepositChests.add(chest);
-                LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (Not a chest block).");
-            }
-            else if (sign.getChunk().isLoaded() && !sign.getType().equals(Material.WALL_SIGN)) {
-                removeDepositChests.add(chest);
-                LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No deposit sign).");
-            }
-        }
-        for(Block chest : removeDepositChests) {
-            depositChests.remove(chest);
-        }
-
-        List<Block> removeDropSigns = new ArrayList<Block>();
-        for(NetworkItem netItem : dropSigns.values()) {
-            Block sign = netItem.sign;
-            if (!sign.getChunk().isLoaded()) sign.getChunk().load();
-            if (!sign.getType().equals(Material.SIGN_POST)) {
-                removeDropSigns.add(sign);
-                LOGGER.info(pluginName + ": Sign at " + sign.getWorld().getName() + "," + sign.getLocation().getX() + "," + sign.getLocation().getY() + "," + sign.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No drop sign).");
-            }
-        }
-        for(Block sign : removeDropSigns) {
-            dropSigns.remove(sign);
-        }
-
-        List<Block> removeWithdrawChests = new ArrayList<Block>();
-        for(NetworkItem netItem : withdrawChests.values()) {
-            Block chest = netItem.chest;
-            Block sign = netItem.sign;
-            if (!chest.getChunk().isLoaded()) chest.getChunk().load();
-            if (!sign.getChunk().isLoaded()) sign.getChunk().load();
-            if (!Util.isValidDepositWithdrawBlock(chest)) {
-                removeWithdrawChests.add(chest);
-                LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (Not a chest block).");
-            }
-            else if (sign.getChunk().isLoaded() && !sign.getType().equals(Material.WALL_SIGN)) {
-                removeWithdrawChests.add(chest);
-                LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No Withdraw sign).");
-            }
-        }
-        for(Block chest : removeWithdrawChests) {
-            withdrawChests.remove(chest);
-        }
-
+        List<Block> removeNetMapBlock = new ArrayList<Block>();
         List<SortNetwork> removedNets = new ArrayList<SortNetwork>();
-        for(List<SortNetwork> nets : networks.values())
-            for(SortNetwork net : nets) {
+        List<String> players = new ArrayList<String>();
 
-                String netName = net.netName;
-                int withdrawcount = 0;
-                int depositcount = 0;
-                int dropsigncount = 0;
-                for(Entry<Block, NetworkItem> wcount : withdrawChests.entrySet()) {
-                    if (wcount.getValue().network.owner.equals(net.owner) && wcount.getValue().network.netName.equals(net.netName)) {
-                        withdrawcount++;
-                    }
+        for(Entry<Block, SortNetwork> networkObject : allNetworkBlocks.entrySet()) {
+            SortNetwork network = networkObject.getValue();
+            List<Block> removeDepositChests = new ArrayList<Block>();
+            List<Block> removeDropSigns = new ArrayList<Block>();
+            List<Block> removeWithdrawChests = new ArrayList<Block>();
+            List<SortChest> removedChests = new ArrayList<SortChest>();
+            
+            for(NetworkItem netItem : network.depositChests.values()) {
+                Block chest = netItem.chest;
+                Block sign = netItem.sign;
+                if (!chest.getChunk().isLoaded()) chest.getChunk().load();
+                if (!sign.getChunk().isLoaded()) sign.getChunk().load();
+                if (!Util.isValidDepositWithdrawBlock(chest)) {
+                    removeDepositChests.add(chest);
+                    removeNetMapBlock.add(chest);
+                    removeNetMapBlock.add(sign);
+                    LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (Not a chest block).");
                 }
-                for(Entry<Block, NetworkItem> dcount : depositChests.entrySet()) {
-                    if (dcount.getValue().network.owner.equals(net.owner) && dcount.getValue().network.netName.equals(net.netName)) {
-                        depositcount++;
-                    }
-                }
-                for(Entry<Block, NetworkItem> dscount : dropSigns.entrySet()) {
-                    if (dscount.getValue().network.owner.equals(net.owner) && dscount.getValue().network.netName.equals(net.netName)) {
-                        dropsigncount++;
-                    }
-                }
-
-                if (net.sortChests.size() == 0 && withdrawcount == 0 && depositcount == 0 && dropsigncount == 0) {
-                    removedNets.add(net);
-                    LOGGER.info(pluginName + ": Network " + netName + " removed (Empty Network).");
-                }
-                else {
-                    List<SortChest> removedChests = new ArrayList<SortChest>();
-                    for(SortChest sortChest : net.sortChests) {
-                        Block chest = sortChest.block;
-                        Block sign = sortChest.sign;
-                        if (!chest.getChunk().isLoaded()) chest.getChunk().load();
-                        if (!sign.getChunk().isLoaded()) sign.getChunk().load();
-                        if (Util.isValidInventoryBlock(chest)) {
-                            if (sign.getType().equals(Material.WALL_SIGN)) {
-                                if (!((Sign) sign.getState()).getLine(0).startsWith("*")) {
-                                    removedChests.add(sortChest);
-                                    LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getX() + "," + chest.getY() + "," + chest.getZ() + " in network " + netName + " removed (No sort sign).");
-                                }
-                            }
-                            else {
-                                removedChests.add(sortChest);
-                                LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getX() + "," + chest.getY() + "," + chest.getZ() + " in network " + netName + " removed (No sort sign).");
-                            }
-                        }
-                        else if (sortChest.block.getChunk().isLoaded() && !Util.isValidInventoryBlock(chest)) {
-                            removedChests.add(sortChest);
-                            LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getX() + "," + chest.getY() + "," + chest.getZ() + " in network " + netName + " removed (Not a chest block).");
-                        }
-                    }
-                    for(SortChest chest : removedChests) {
-                        net.sortChests.remove(chest);
-                    }
+                else if (sign.getChunk().isLoaded() && !sign.getType().equals(Material.WALL_SIGN)) {
+                    removeDepositChests.add(chest);
+                    removeNetMapBlock.add(chest);
+                    removeNetMapBlock.add(sign);
+                    LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No deposit sign).");
                 }
             }
-        for(SortNetwork netName : removedNets) {
-            for(List<SortNetwork> nets : networks.values())
-                for(SortNetwork net : nets) {
-                    if (net.equals(netName)) {
-                        nets.remove(netName);
-                        break;
+            
+            for(Block chest : removeDepositChests)
+                network.depositChests.remove(chest);
+
+            for(NetworkItem netItem : network.dropSigns.values()) {
+                Block sign = netItem.sign;
+                if (!sign.getChunk().isLoaded()) sign.getChunk().load();
+                if (!sign.getType().equals(Material.SIGN_POST)) {
+                    removeDropSigns.add(sign);
+                    removeNetMapBlock.add(sign);
+                    LOGGER.info(pluginName + ": Sign at " + sign.getWorld().getName() + "," + sign.getLocation().getX() + "," + sign.getLocation().getY() + "," + sign.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No drop sign).");
+                }
+            }
+
+            for(Block sign : removeDropSigns)
+                network.dropSigns.remove(sign);
+
+            for(NetworkItem netItem : network.withdrawChests.values()) {
+                Block chest = netItem.chest;
+                Block sign = netItem.sign;
+                if (!chest.getChunk().isLoaded()) chest.getChunk().load();
+                if (!sign.getChunk().isLoaded()) sign.getChunk().load();
+                if (!Util.isValidDepositWithdrawBlock(chest)) {
+                    removeWithdrawChests.add(chest);
+                    removeNetMapBlock.add(chest);
+                    removeNetMapBlock.add(sign);
+                    LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (Not a chest block).");
+                }
+                else if (sign.getChunk().isLoaded() && !sign.getType().equals(Material.WALL_SIGN)) {
+                    removeWithdrawChests.add(chest);
+                    removeNetMapBlock.add(chest);
+                    removeNetMapBlock.add(sign);
+                    LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No Withdraw sign).");
+                }
+            }
+            
+            for(Block chest : removeWithdrawChests)
+                network.withdrawChests.remove(chest);
+
+            for(SortChest sortChest : network.sortChests) {
+                Block chest = sortChest.block;
+                Block sign = sortChest.sign;
+                if (!chest.getChunk().isLoaded()) chest.getChunk().load();
+                if (!sign.getChunk().isLoaded()) sign.getChunk().load();
+                if (Util.isValidInventoryBlock(chest)) {
+                    if (sign.getType().equals(Material.WALL_SIGN)) {
+                        if (!((Sign) sign.getState()).getLine(0).startsWith("*")) {
+                            removedChests.add(sortChest);
+                            LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getX() + "," + chest.getY() + "," + chest.getZ() + " in network " + network.netName + " removed (No sort sign).");
+                        }
+                    }
+                    else {
+                        removedChests.add(sortChest);
+                        removeNetMapBlock.add(chest);
+                        removeNetMapBlock.add(sign);
+                        LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getX() + "," + chest.getY() + "," + chest.getZ() + " in network " + network.netName + " removed (No sort sign).");
                     }
                 }
+                else if (sortChest.block.getChunk().isLoaded() && !Util.isValidInventoryBlock(chest)) {
+                    removedChests.add(sortChest);
+                    removeNetMapBlock.add(chest);
+                    removeNetMapBlock.add(sign);
+                    LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getX() + "," + chest.getY() + "," + chest.getZ() + " in network " + network.netName + " removed (Not a chest block).");
+                }
+            }
+            for(SortChest chest : removedChests) {
+                network.sortChests.remove(chest);
+            }
+
+            String netName = network.netName;
+
+            if (network.sortChests.size() == 0 && network.depositChests.size() == 0 && network.depositChests.size() == 0 && network.dropSigns.size() == 0) {
+                removedNets.add(network);
+                LOGGER.info(pluginName + ": Network " + netName + " removed (Empty Network).");
+            }
         }
-        List<String> players = new ArrayList<String>();
-        for(Entry<String, List<SortNetwork>> nets : networks.entrySet()) {
+
+        for(SortNetwork netName : removedNets)
+            networks.get(netName.owner).remove(netName);
+
+        for(Block block : removeNetMapBlock)
+            allNetworkBlocks.remove(block);
+
+        for(Entry<String, List<SortNetwork>> nets : networks.entrySet())
             if (nets.getValue().size() == 0) players.add(nets.getKey());
-        }
+
         for(String player : players) {
             networks.remove(player);
             LOGGER.info(pluginName + ": Player: " + player + " removed from database, No active networks.");
@@ -688,21 +696,21 @@ public class AutoSort extends JavaPlugin {
         }
 
         getCustomConfig().set("version", SAVEVERSION);
-        
+
         // Save Owners
         ConfigurationSection netsSec = getCustomConfig().createSection("Owners");
         for(Entry<String, List<SortNetwork>> nets : networks.entrySet()) {
             String key = nets.getKey();
-            
+
             // Save Networks
             ConfigurationSection owners = netsSec.createSection(key);
             ConfigurationSection newnet = owners.createSection("NetworkNames");
             for(SortNetwork net : nets.getValue()) {
-                
+
                 // Save Members
                 ConfigurationSection netnames = newnet.createSection(net.netName);
                 netnames.set("Members", net.members);
-                
+
                 // Save Sort Chests
                 ConfigurationSection chestSec = netnames.createSection("Chests");
                 for(SortChest chest : net.sortChests) {
@@ -716,10 +724,10 @@ public class AutoSort extends JavaPlugin {
                     cSec.set("Priority", chest.priority);
                     cSec.set("DisregardDamage", chest.disregardDamage);
                 }
-                
+
                 // Save Deposit Chests
                 ConfigurationSection depChestSec = netnames.createSection("DepositChests");
-                for(Entry<Block, NetworkItem> depChest : depositChests.entrySet()) {
+                for(Entry<Block, NetworkItem> depChest : net.depositChests.entrySet()) {
                     if (depChest.getValue().network.owner.equals(key) && depChest.getValue().network.netName.equals(net.netName)) {
                         Location depLoc = depChest.getKey().getLocation();
                         Location depSignLoc = depChest.getValue().sign.getLocation();
@@ -732,7 +740,7 @@ public class AutoSort extends JavaPlugin {
 
                 // Save WithdrawChests
                 ConfigurationSection wdChestSec = netnames.createSection("WithdrawChests");
-                for(Entry<Block, NetworkItem> wdChest : withdrawChests.entrySet()) {
+                for(Entry<Block, NetworkItem> wdChest : net.withdrawChests.entrySet()) {
                     if (wdChest.getValue().network.owner.equals(key) && wdChest.getValue().network.netName.equals(net.netName)) {
                         Location wdLoc = wdChest.getKey().getLocation();
                         Location wdSignLoc = wdChest.getValue().sign.getLocation();
@@ -745,7 +753,7 @@ public class AutoSort extends JavaPlugin {
 
                 // Save Drop Signs
                 ConfigurationSection dSignSec = netnames.createSection("DropSigns");
-                for(Entry<Block, NetworkItem> dSign : dropSigns.entrySet()) {
+                for(Entry<Block, NetworkItem> dSign : net.dropSigns.entrySet()) {
                     if (dSign.getValue().network.owner.equals(key) && dSign.getValue().network.netName.equals(net.netName)) {
                         Location dSignLoc = dSign.getKey().getLocation();
                         String locString = dSignLoc.getWorld().getName().replace(".", "(dot)") + "," + dSignLoc.getBlockX() + "," + dSignLoc.getBlockY() + "," + dSignLoc.getBlockZ();
@@ -812,17 +820,18 @@ public class AutoSort extends JavaPlugin {
 
     public NetworkItem findNetworkItemBySign(Block signBlock) {
         if (signBlock.getType().equals(Material.WALL_SIGN) || signBlock.getType().equals(Material.SIGN_POST)) {
+            SortNetwork network = allNetworkBlocks.get(signBlock);
             Sign sign = (Sign) signBlock.getState();
             if (sign.getLine(0).startsWith("*")) {
-                for(NetworkItem ni : dropSigns.values()) {
+                for(NetworkItem ni : network.dropSigns.values()) {
                     if (ni.sign.equals(signBlock)) return ni;
                 }
-                for(NetworkItem ni : depositChests.values()) {
+                for(NetworkItem ni : network.depositChests.values()) {
                     if (ni.sign.equals(signBlock)) return ni;
                 }
             }
             else if (sign.getLine(0).startsWith("#")) {
-                for(NetworkItem ni : withdrawChests.values()) {
+                for(NetworkItem ni : network.withdrawChests.values()) {
                     if (ni.sign.equals(signBlock)) return ni;
                 }
             }
