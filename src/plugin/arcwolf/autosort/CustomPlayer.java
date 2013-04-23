@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 
 import plugin.arcwolf.autosort.Network.SortNetwork;
 
@@ -20,6 +21,7 @@ public class CustomPlayer {
     public String owner = ""; // This networks owner
     public String playerName = ""; // The players name
     public Block block = null; // The withdraw chest block
+    public Inventory withdrawInventory = null; // The inventory for withdrawing
     public List<InventoryItem> inventory = new ArrayList<InventoryItem>(400); // Full inventory of this network
     public SortNetwork sortNetwork = null;
 
@@ -41,6 +43,7 @@ public class CustomPlayer {
         owner = "";
         playerName = "";
         block = null;
+        withdrawInventory = null;
         inventory.clear();
         sortNetwork = null;
     }

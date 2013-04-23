@@ -74,7 +74,7 @@ public class SortTask implements Runnable {
                 for(SortNetwork net : networks)
                     for(Entry<Block, NetworkItem> depChest : net.depositChests.entrySet()) {
                         if (depChest.getKey().getChunk().isLoaded()) {
-                            if (net != null && Util.isValidDepositWithdrawBlock(depChest.getKey())) {
+                            if (net != null && plugin.util.isValidDepositWithdrawBlock(depChest.getKey())) {
                                 InventoryHolder chest = Util.getInventoryHolder(depChest.getKey());
                                 Inventory inv = chest.getInventory();
                                 ItemStack[] contents = inv.getContents();
@@ -103,9 +103,9 @@ public class SortTask implements Runnable {
                     for(SortNetwork net : networks) {
                         for(SortChest chest : net.sortChests) {
                             if (chest.block.getChunk().isLoaded()) {
-                                if (chest.priority == i && Util.isValidInventoryBlock(chest.block)) {
+                                if (chest.priority == i && plugin.util.isValidInventoryBlock(chest.block)) {
                                     maintainLavaFurnace(net, chest, chest.block);
-                                    Inventory inv = Util.getInventory(chest.block);
+                                    Inventory inv = plugin.util.getInventory(chest.block);
                                     ItemStack[] items = inv.getContents();
                                     ItemStack is;
                                     for(int j = 0; j < items.length; j++) {

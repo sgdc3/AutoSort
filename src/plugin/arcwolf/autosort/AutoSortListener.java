@@ -2,7 +2,6 @@ package plugin.arcwolf.autosort;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +17,6 @@ import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
 import org.bukkit.block.Furnace;
 import org.bukkit.block.Sign;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -36,7 +34,6 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
@@ -47,7 +44,7 @@ import plugin.arcwolf.autosort.Network.SortNetwork;
 public class AutoSortListener implements Listener {
 
     private AutoSort plugin;
-    private Map<String, SortNetwork> chestLock = new Hashtable<String, SortNetwork>();
+    public Map<String, SortNetwork> chestLock = new Hashtable<String, SortNetwork>();
 
     public AutoSortListener(AutoSort autoSort) {
         plugin = autoSort;
@@ -110,7 +107,7 @@ public class AutoSortListener implements Listener {
         if (!(event.getPlayer() instanceof Player)) return;
         Player player = (Player) event.getPlayer();
         CustomPlayer settings = CustomPlayer.getSettings(player);
-        restoreWithdrawnInv(settings, player);
+        plugin.util.restoreWithdrawnInv(settings, player);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -136,10 +133,12 @@ public class AutoSortListener implements Listener {
             if (sortNetwork == null) return;
             if (sortNetwork.withdrawChests.containsKey(lChest)) {
                 settings.block = lChest;
+                settings.withdrawInventory = ((Chest) lChest.getState()).getInventory();
                 block = lChest;
             }
             else if (sortNetwork.withdrawChests.containsKey(rChest)) {
                 settings.block = rChest;
+                settings.withdrawInventory = ((Chest) rChest.getState()).getInventory();
                 block = rChest;
             }
             else
@@ -149,8 +148,10 @@ public class AutoSortListener implements Listener {
             block = ((Chest) holder).getBlock();
             sortNetwork = plugin.allNetworkBlocks.get(block);
             if (sortNetwork == null) return;
-            if (sortNetwork.withdrawChests.containsKey(block))
+            if (sortNetwork.withdrawChests.containsKey(block)) {
                 settings.block = block;
+                settings.withdrawInventory = ((Chest) block.getState()).getInventory();
+            }
             else
                 return;
         }
@@ -164,9 +165,9 @@ public class AutoSortListener implements Listener {
         settings.owner = owner;
         settings.playerName = player.getName();
         settings.sortNetwork = sortNetwork;
-        if (updateInventoryList(player, settings)) {
+        if (plugin.util.updateInventoryList(player, settings)) {
             Collections.sort(settings.inventory, new IntegerComparator());
-            updateChestInventory(player, settings);
+            plugin.util.updateChestInventory(player, settings);
         }
         else {
             player.sendMessage("The network - " + ChatColor.YELLOW + netName + ChatColor.WHITE + " - is empty.");
@@ -197,10 +198,10 @@ public class AutoSortListener implements Listener {
                     else
                         settings.startItemIdx = 0;
                 }
-                updateChestTask(player, settings);
+                plugin.util.updateChestTask(player, settings);
             }
-            else if (clickedId <= ((Chest) settings.block.getState()).getInventory().getSize()) { // If player removes item from chest resort chest
-                updateChestTask(player, settings);
+            else if (clickedId <= settings.withdrawInventory.getSize()) { // If player removes item from chest resort chest
+                plugin.util.updateChestTask(player, settings);
             }
         }
     }
@@ -212,7 +213,7 @@ public class AutoSortListener implements Listener {
         if (block == null) return;
         Player player = event.getPlayer();
         String pName = player.getName();
-        if (Util.isValidInventoryBlock(player, block, false) || isValidSign(block)) {
+        if (plugin.util.isValidInventoryBlock(player, block, false) || isValidSign(block)) {
             SortNetwork sortNetwork = plugin.allNetworkBlocks.get(block);
             if (sortNetwork == null) return;
             if (!pName.equalsIgnoreCase(sortNetwork.owner) && !sortNetwork.members.contains(pName) && !plugin.playerHasPermission(player, "autosort.override")) {
@@ -222,7 +223,7 @@ public class AutoSortListener implements Listener {
                 event.setCancelled(true);
             }
             else if (chestLock.containsValue(sortNetwork)) {
-                if (!(sortNetwork.withdrawChests.containsKey(block) || sortNetwork.withdrawChests.containsKey(Util.doubleChest(block)))) return;
+                if (!(sortNetwork.withdrawChests.containsKey(block) || sortNetwork.withdrawChests.containsKey(plugin.util.doubleChest(block)))) return;
 
                 String user = "";
                 for(Entry<String, SortNetwork> sortNet : chestLock.entrySet()) {
@@ -256,7 +257,7 @@ public class AutoSortListener implements Listener {
         CustomPlayer settings = CustomPlayer.getSettings(player);
         playerName = settings.playerName;
         if (playerName != "") {
-            restoreWithdrawnInv(settings, player);
+            plugin.util.restoreWithdrawnInv(settings, player);
         }
     }
 
@@ -290,7 +291,7 @@ public class AutoSortListener implements Listener {
                     if (option.startsWith("D:")) {
                         storageBlock = getDirection(option.split(":")[1], signBlock);
                     }
-                    if (Util.isValidDepositWithdrawBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
+                    if (plugin.util.isValidDepositWithdrawBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
                         if (!AutoSort.worldRestrict || sortNetwork.world.equalsIgnoreCase(signBlock.getWorld().getName().toLowerCase())) {
                             int prox = getProximity(netName);
                             Location origin = getOrigin(sortNetwork.sortChests);
@@ -300,7 +301,7 @@ public class AutoSortListener implements Listener {
                                 sortNetwork.withdrawChests.put(storageBlock, netItem);
                                 plugin.allNetworkBlocks.put(signBlock, sortNetwork);
                                 plugin.allNetworkBlocks.put(storageBlock, sortNetwork);
-                                plugin.allNetworkBlocks.put(Util.doubleChest(storageBlock), sortNetwork);
+                                plugin.allNetworkBlocks.put(plugin.util.doubleChest(storageBlock), sortNetwork);
                                 event.setLine(1, "§fOpen Chest");
                                 event.setLine(2, "§fTo Withdraw");
                                 player.sendMessage(ChatColor.AQUA + "Withdraw chest added to network " + netName + ".");
@@ -362,7 +363,7 @@ public class AutoSortListener implements Listener {
                     event.setLine(2, mat2);
 
                     if (mat.equalsIgnoreCase("")) { //TODO Deposit Chest
-                        if (Util.isValidDepositWithdrawBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
+                        if (plugin.util.isValidDepositWithdrawBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
                             if (!AutoSort.worldRestrict || sortNetwork.world.equalsIgnoreCase(signBlock.getWorld().getName().toLowerCase())) {
                                 int prox = getProximity(netName);
                                 Location origin = getOrigin(sortNetwork.sortChests);
@@ -375,7 +376,7 @@ public class AutoSortListener implements Listener {
                                     sortNetwork.depositChests.put(storageBlock, netItem);
                                     plugin.allNetworkBlocks.put(signBlock, sortNetwork);
                                     plugin.allNetworkBlocks.put(storageBlock, sortNetwork);
-                                    plugin.allNetworkBlocks.put(Util.doubleChest(storageBlock), sortNetwork);
+                                    plugin.allNetworkBlocks.put(plugin.util.doubleChest(storageBlock), sortNetwork);
                                 }
                                 else {
                                     player.sendMessage(ChatColor.RED + "You can only place chests within " + prox + " blocks of the original chest!");
@@ -401,7 +402,7 @@ public class AutoSortListener implements Listener {
                                 return;
                             }
                         }
-                        if (Util.isValidInventoryBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
+                        if (plugin.util.isValidInventoryBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
                             boolean dd = !mat.contains(":");
 
                             if (plugin.playerHasPermission(player, "autosort.override") || sortNetwork.owner.equalsIgnoreCase(player.getName())) {
@@ -414,7 +415,7 @@ public class AutoSortListener implements Listener {
                                         sortNetwork.sortChests.add(new SortChest(storageBlock, signBlock, mat, priority, dd));
                                         plugin.allNetworkBlocks.put(signBlock, sortNetwork);
                                         plugin.allNetworkBlocks.put(storageBlock, sortNetwork);
-                                        plugin.allNetworkBlocks.put(Util.doubleChest(storageBlock), sortNetwork);
+                                        plugin.allNetworkBlocks.put(plugin.util.doubleChest(storageBlock), sortNetwork);
                                         player.sendMessage(ChatColor.AQUA + "Sort chest with material(s) " + mat + " and priority " + priority + " added to network " + netName + ".");
                                     }
                                     else {
@@ -561,9 +562,9 @@ public class AutoSortListener implements Listener {
                         // Deposit Chest
                         plugin.allNetworkBlocks.remove(block);
                         plugin.allNetworkBlocks.remove(storageBlock);
-                        plugin.allNetworkBlocks.remove(Util.doubleChest(storageBlock));
+                        plugin.allNetworkBlocks.remove(plugin.util.doubleChest(storageBlock));
                         network.depositChests.remove(storageBlock);
-                        network.depositChests.remove(Util.doubleChest(storageBlock));
+                        network.depositChests.remove(plugin.util.doubleChest(storageBlock));
                         event.getPlayer().sendMessage(ChatColor.BLUE + "Deposit chest removed.");
                         return;
                     }
@@ -571,7 +572,7 @@ public class AutoSortListener implements Listener {
                         // Sort Chest
                         SortChest sc = network.findSortChest(storageBlock);
                         plugin.allNetworkBlocks.remove(sc.block);
-                        plugin.allNetworkBlocks.remove(Util.doubleChest(sc.block));
+                        plugin.allNetworkBlocks.remove(plugin.util.doubleChest(sc.block));
                         plugin.allNetworkBlocks.remove(sc.sign);
                         network.sortChests.remove(sc);
                         event.getPlayer().sendMessage(ChatColor.BLUE + "Sort chest removed.");
@@ -597,9 +598,9 @@ public class AutoSortListener implements Listener {
                     else {
                         plugin.allNetworkBlocks.remove(block);
                         plugin.allNetworkBlocks.remove(storageBlock);
-                        plugin.allNetworkBlocks.remove(Util.doubleChest(storageBlock));
+                        plugin.allNetworkBlocks.remove(plugin.util.doubleChest(storageBlock));
                         network.withdrawChests.remove(storageBlock);
-                        network.withdrawChests.remove(Util.doubleChest(storageBlock));
+                        network.withdrawChests.remove(plugin.util.doubleChest(storageBlock));
                         event.getPlayer().sendMessage(ChatColor.BLUE + "Withdraw chest removed.");
                         return;
                     }
@@ -612,15 +613,15 @@ public class AutoSortListener implements Listener {
                 return;
             }
         }
-        else if (Util.isValidInventoryBlock(player, block, false)) {
+        else if (plugin.util.isValidInventoryBlock(player, block, false)) {
             network = plugin.allNetworkBlocks.get(block);
-            if (network == null) network = plugin.allNetworkBlocks.get(Util.doubleChest(block));
+            if (network == null) network = plugin.allNetworkBlocks.get(plugin.util.doubleChest(block));
             if (network == null) return;
             if (network.owner.equals(pName) || plugin.playerHasPermission(player, "autosort.override")) {
 
-                if (network.depositChests.containsKey(block) || network.depositChests.containsKey(Util.doubleChest(block))) {
+                if (network.depositChests.containsKey(block) || network.depositChests.containsKey(plugin.util.doubleChest(block))) {
                     NetworkItem netItem = network.depositChests.get(block);
-                    if (netItem == null) netItem = network.depositChests.get(Util.doubleChest(block));
+                    if (netItem == null) netItem = network.depositChests.get(plugin.util.doubleChest(block));
                     if (netItem == null) return;
                     Block signBlock = netItem.sign;
                     if (signBlock.getType().equals(Material.WALL_SIGN)) {
@@ -630,13 +631,13 @@ public class AutoSortListener implements Listener {
                         chestSign.update();
                     }
                     plugin.allNetworkBlocks.remove(block);
-                    plugin.allNetworkBlocks.remove(Util.doubleChest(block));
+                    plugin.allNetworkBlocks.remove(plugin.util.doubleChest(block));
                     plugin.allNetworkBlocks.remove(signBlock);
                     network.depositChests.remove(block);
-                    network.depositChests.remove(Util.doubleChest(block));
+                    network.depositChests.remove(plugin.util.doubleChest(block));
                     event.getPlayer().sendMessage(ChatColor.BLUE + "Deposit chest removed.");
                 }
-                else if (network.withdrawChests.containsKey(block) || network.withdrawChests.containsKey(Util.doubleChest(block))) {
+                else if (network.withdrawChests.containsKey(block) || network.withdrawChests.containsKey(plugin.util.doubleChest(block))) {
                     if (chestLock.containsValue(network)) {
                         String user = "";
                         for(Entry<String, SortNetwork> sortNet : chestLock.entrySet()) {
@@ -655,7 +656,7 @@ public class AutoSortListener implements Listener {
                         CustomPlayer settings = CustomPlayer.getSettings(event.getPlayer());
                         settings.clearPlayer();
                         NetworkItem netItem = network.withdrawChests.get(block);
-                        if (netItem == null) netItem = network.withdrawChests.get(Util.doubleChest(block));
+                        if (netItem == null) netItem = network.withdrawChests.get(plugin.util.doubleChest(block));
                         if (netItem == null) return;
                         Block signBlock = netItem.sign;
                         if (signBlock.getType().equals(Material.WALL_SIGN)) {
@@ -665,7 +666,7 @@ public class AutoSortListener implements Listener {
                             chestSign.update();
                         }
                         plugin.allNetworkBlocks.remove(block);
-                        plugin.allNetworkBlocks.remove(Util.doubleChest(block));
+                        plugin.allNetworkBlocks.remove(plugin.util.doubleChest(block));
                         plugin.allNetworkBlocks.remove(signBlock);
                         network.withdrawChests.remove(block);
                         event.getPlayer().sendMessage(ChatColor.BLUE + "Withdraw chest removed.");
@@ -674,7 +675,7 @@ public class AutoSortListener implements Listener {
                 }
                 else {
                     SortChest sortChest = network.findSortChest(block);
-                    if (sortChest == null) sortChest = network.findSortChest(Util.doubleChest(block));
+                    if (sortChest == null) sortChest = network.findSortChest(plugin.util.doubleChest(block));
                     if (sortChest == null) return;
                     if (sortChest.sign.getType().equals(Material.WALL_SIGN)) {
                         Sign chestSign = (Sign) sortChest.sign.getState();
@@ -683,7 +684,7 @@ public class AutoSortListener implements Listener {
                         chestSign.update();
                     }
                     plugin.allNetworkBlocks.remove(block);
-                    plugin.allNetworkBlocks.remove(Util.doubleChest(block));
+                    plugin.allNetworkBlocks.remove(plugin.util.doubleChest(block));
                     plugin.allNetworkBlocks.remove(sortChest.sign);
                     network.sortChests.remove(sortChest);
                     event.getPlayer().sendMessage(ChatColor.BLUE + "Sort chest removed.");
@@ -701,159 +702,10 @@ public class AutoSortListener implements Listener {
 
     //TODO Helper Methods / Classes
 
-    // Roll through the network and pull out the correct amount of resources.
-    // If not enough space return a false
-    // true is successful
-    private boolean makeWithdraw(Player player, CustomPlayer settings) {
-        Chest withdrawChest = (Chest) settings.block.getState();
-        int wantedAmount = settings.wantedAmount;
-        int wantedItem = settings.inventory.get(settings.currentItemIdx).itemId;
-        int wantedItemId = settings.inventory.get(settings.currentItemIdx).itemData;
-        Map<Integer, ItemStack> couldntFit = null;
-        Inventory networkInv;
-        for(SortChest chest : settings.sortNetwork.sortChests) {
-            if (!chest.block.getChunk().isLoaded())
-                chest.block.getChunk().load();
-            networkInv = Util.getInventory(chest.block);
-            if (networkInv == null) return false;
-            for(int idx = 0; idx < networkInv.getSize(); idx++) {
-                ItemStack networkItem = networkInv.getItem(idx);
-                if (networkItem != null) {
-                    if (networkItem.getTypeId() == wantedItem && networkItem.getData().getData() == wantedItemId) {
-                        int foundAmount = networkItem.getAmount();
-                        InventoryHolder withdrawInv = withdrawChest;
-                        ItemStack stack = networkItem;
-                        if (wantedAmount >= foundAmount && foundAmount != 0) { // Found amount and was less then wanted
-                            couldntFit = withdrawInv.getInventory().addItem(stack);
-                            if (couldntFit != null && !couldntFit.isEmpty()) { return false; }
-                            wantedAmount -= foundAmount;
-                            settings.wantedAmount = wantedAmount;
-                            networkInv.clear(idx);
-                        }
-                        else if (wantedAmount != 0 && wantedAmount < foundAmount) { // Found amount and was more then wanted
-                            while (wantedAmount > 0) {
-                                couldntFit = withdrawInv.getInventory().addItem(stack);
-                                if (couldntFit != null && !couldntFit.isEmpty()) { return false; }
-                                wantedAmount -= foundAmount;
-                                settings.wantedAmount = wantedAmount;
-                                networkInv.clear(idx);
-                            }
-                            if (couldntFit != null && !couldntFit.isEmpty()) { return false; }
-                            wantedAmount -= foundAmount;
-                            settings.wantedAmount = wantedAmount;
-                        }
-                    }
-                }
-            }
-        }
-        settings.wantedAmount = wantedAmount;
-        return true;
-    }
-
-    private void updateChestInventory(Player player, CustomPlayer settings) {
-        Chest chest = (Chest) settings.block.getState();
-        ItemStack dummyItem = new ItemStack(373, 1);
-        try {
-            if (!settings.block.getChunk().isLoaded())
-                settings.block.getChunk().load();
-            if (tooManyItems(player, settings)) player.sendMessage(ChatColor.GOLD + settings.netName + ChatColor.RED + " is too full to replace withdrawchest Items!");
-            chest.getInventory().clear();
-            chest.getInventory().setItem(0, dummyItem);
-            chest.getInventory().setItem(8, dummyItem);
-
-            for(settings.currentItemIdx = settings.startItemIdx; settings.currentItemIdx < settings.inventory.size(); settings.currentItemIdx++) {
-                settings.wantedAmount = settings.inventory.get(settings.currentItemIdx).amount;
-                makeWithdraw(player, settings);
-            }
-            if (chest.getInventory().firstEmpty() != -1 && settings.startItemIdx != 0) {
-                for(int count = 0; count < settings.startItemIdx; count++) {
-                    settings.currentItemIdx = count;
-                    settings.wantedAmount = settings.inventory.get(count).amount;
-                    makeWithdraw(player, settings);
-                }
-            }
-        } catch (Exception e) {
-            ConsoleCommandSender sender = plugin.getServer().getConsoleSender();
-            sender.sendMessage(ChatColor.RED + "AutoSort critical Withdraw Chest error!");
-            sender.sendMessage("Chest at " + chest.getLocation());
-            sender.sendMessage("Player was " + player.getName());
-            sender.sendMessage("Owner was " + settings.owner);
-            sender.sendMessage("Network was " + settings.netName);
-            sender.sendMessage("Error is as follows: ");
-            sender.sendMessage(ChatColor.RED + "---------------------------------------");
-            e.printStackTrace();
-            sender.sendMessage(ChatColor.RED + "---------------------------------------");
-        } finally {
-            chest.getInventory().setItem(0, new ItemStack(0));
-            chest.getInventory().setItem(8, new ItemStack(0));
-        }
-    }
-
-    private boolean updateInventoryList(Player player, CustomPlayer settings) {
-        for(SortChest chest : settings.sortNetwork.sortChests) {
-            Inventory inv = Util.getInventoryHolder(chest.block).getInventory();
-            if (inv == null) continue;
-            for(ItemStack item : inv) {
-                if (item != null) {
-                    int itemId = item.getTypeId();
-                    int itemData = item.getData().getData();
-                    int index = settings.findItem(itemId, itemData);
-                    if (index != -1) {
-                        settings.inventory.get(index).amount += item.getAmount();
-                    }
-                    else {
-                        settings.inventory.add(new InventoryItem(itemId, itemData, item.getAmount()));
-                    }
-                }
-            }
-        }
-        return settings.inventory.size() > 0;
-    }
-
-    private void updateChestTask(final Player player, final CustomPlayer settings) {
-        plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-
-            public void run() {
-                updateChestInventory(player, settings);
-            }
-        }, 3);
-    }
-
-    private void restoreWithdrawnInv(CustomPlayer settings, Player player) {
-        if (settings.sortNetwork != null) {
-            if (chestLock.containsKey(player.getName())) {
-                chestLock.remove(player.getName());
-                Inventory inv = ((Chest) settings.block.getState()).getInventory();
-                for(int i = 0; i < inv.getSize(); i++) {
-                    if (inv.getItem(i) != null) {
-                        settings.sortNetwork.sortItem(inv.getItem(i));
-                    }
-                }
-                inv.clear();
-                settings.clearPlayer();
-            }
-        }
-    }
-
-    private boolean tooManyItems(Player player, CustomPlayer settings) {
-        boolean tooManyItems = false;
-        Inventory inv = ((Chest) settings.block.getState()).getInventory();
-        Location dropLoc = player.getLocation();
-        for(int i = 0; i < inv.getSize(); i++) {
-            if (inv.getItem(i) != null) {
-                if (!settings.sortNetwork.sortItem(inv.getItem(i))) {
-                    dropLoc.getWorld().dropItem(dropLoc, inv.getItem(i));
-                    tooManyItems = true;
-                }
-            }
-        }
-        return tooManyItems;
-    }
-
     private boolean hopperDropperStopper(List<Block> blocksToTest, Player player) {
         String owner = player.getName();
         for(Block testBlock : blocksToTest) {
-            if (!Util.isValidInventoryBlock(testBlock)) continue;
+            if (!plugin.util.isValidInventoryBlock(testBlock)) continue;
             SortNetwork sortNet = plugin.allNetworkBlocks.get(testBlock);
             if (sortNet != null) {
                 if (!owner.equals(sortNet.owner)) {
@@ -867,7 +719,7 @@ public class AutoSortListener implements Listener {
     }
 
     private boolean doubleChestPlaceChest(Material mat, Block block, Player player) {
-        Block blockToTest = Util.doubleChest(block);
+        Block blockToTest = plugin.util.doubleChest(block);
         if (blockToTest.getType().equals(mat)) {
             SortNetwork net = plugin.allNetworkBlocks.get(blockToTest);
             if (net == null) return false;
@@ -1085,17 +937,5 @@ public class AutoSortListener implements Listener {
 
     private Location getOrigin(List<SortChest> sortChests) {
         return sortChests.size() > 0 ? sortChests.get(0).block.getLocation() : null;
-    }
-
-    private class IntegerComparator implements Comparator<Object> {
-
-        @Override
-        public int compare(Object o1, Object o2) {
-            InventoryItem value1 = (InventoryItem) o1;
-            InventoryItem value2 = (InventoryItem) o2;
-            Integer itemId1 = value1.itemId;
-            Integer itemId2 = value2.itemId;
-            return itemId1.compareTo(itemId2);
-        }
     }
 }

@@ -1,13 +1,17 @@
 name: AutoSort
 authors: [ArcWolf, TheJuggernaut0]
 main: plugin.arcwolf.autosort.AutoSort
-version: 0.7.3
+version: 0.8
 description: A chest inventory sorting plugin. Originally created by TheJuggernaut0. Updated / maintained by ArcWolf.
 commands:
   autosort:
-    description: Sort your entire inventory
+    description: Sort your entire inventory except your inventory bar
     permission: autosort.autosort
     usage: /autosort [networkName]
+  autosortall:
+    description: Sort your entire inventory
+    permission: autosort.autosort
+    usage: /autosortall [networkName]
   asreload:
     description: Reload AutoSort
     permission: autosort.reload
@@ -46,12 +50,14 @@ commands:
     usage: /asremnet <ownerName> <networkName>
   aswithdraw:
     description: Withdraw from a network
-    usage: /aswithdraw <networkName>
+    permission: autosort.use.withdrawcommand
+    usage: /aswithdraw <ownerName> <networkName>
 permissions:
   autosort.*:
     children:
       autosort.use: true
       autosort.use.withdraw: true
+      autosort.use.withdrawcommand: true
       autosort.create: true
       autosort.override: true
       autosort.autosort: true

@@ -1,9 +1,11 @@
 package plugin.arcwolf.autosort;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -32,30 +34,10 @@ public class CommandHandler {
         String commandName = cmd.getName();
         Player player = (Player) sender;
         if (commandName.equalsIgnoreCase("autosort") && plugin.playerHasPermission(player, "autosort.use")) {
-            if (args.length == 1) {
-                Inventory inv = player.getInventory();
-                SortNetwork net = plugin.findNetwork(player.getName(), args[0]);
-                if (net != null) {
-                    ItemStack[] contents = inv.getContents();
-                    int i;
-                    ItemStack is;
-                    for(i = 0; i < contents.length; i++) {
-                        is = contents[i];
-                        if (is != null) {
-                            if (net.sortItem(is)) {
-                                contents[i] = null;
-                            }
-                        }
-                    }
-                    inv.setContents(contents);
-                    player.sendMessage(ChatColor.GREEN + "Inventory sorted into " + args[0]);
-                    return true;
-                }
-                else {
-                    sender.sendMessage(ChatColor.RED + "The network '" + args[0] + "' could not be found.");
-                    return true;
-                }
-            }
+            if (args.length == 1) { return sortPlayerInventory(9, sender, args[0]); }
+        }
+        else if (commandName.equalsIgnoreCase("autosortall") && plugin.playerHasPermission(player, "autosort.use")) {
+            if (args.length == 1) { return sortPlayerInventory(0, sender, args[0]); }
         }
         else if (commandName.equalsIgnoreCase("asreload") && plugin.playerHasPermission(player, "autosort.reload")) {
             if (args.length == 0) {
@@ -284,10 +266,34 @@ public class CommandHandler {
             plugin.saveVersion5Network();
             return true;
         }
-        else if (commandName.equals("aswithdraw")) { //Test withdraw inventory.
-            //Inventory customInventory = Bukkit.createInventory(null, 9, "Test inventory");
-            //((Player)sender).openInventory(customInventory);
-            return true;
+        else if (commandName.equals("aswithdraw") && plugin.playerHasPermission(player, "autosort.use.withdrawcommand")) {
+            if (args.length == 1) { // /aswithdraw <netName>
+                String owner = ((Player) sender).getName();
+                String netName = args[0];
+                SortNetwork network = plugin.findNetwork(owner, netName);
+                if (network == null) {
+                    sender.sendMessage(ChatColor.RED + "Could not find network " + ChatColor.RESET + args[0] + ChatColor.RED + " owned by " + ChatColor.RESET + owner);
+                    sender.sendMessage("Try " + ChatColor.YELLOW + " /aswithdraw <ownerName> " + args[0]);
+                    return true;
+                }
+                return doCommandWithdraw(player, network, owner, netName);
+            }
+            else if (args.length == 2) { // /aswithdraw <ownerName> <netName>
+                String owner = args[0];
+                String netName = args[1];
+                SortNetwork network = plugin.findNetwork(owner, netName);
+                if (network == null) {
+                    sender.sendMessage(ChatColor.RED + "Could not find network " + ChatColor.RESET + args[1] + ChatColor.RED + " owned by " + ChatColor.RESET + args[0]);
+                    return true;
+                }
+                if ((network.owner.equals(player.getName()) || network.members.contains(player.getName())) || plugin.playerHasPermission(player, "autosort.override")) {
+                    return doCommandWithdraw(player, network, owner, netName);
+                }
+                else {
+                    sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + args[1] + " network.");
+                    return true;
+                }
+            }
         }
         return false;
     }
@@ -480,7 +486,7 @@ public class CommandHandler {
         for(Entry<Block, NetworkItem> wchest : network.withdrawChests.entrySet()) {
             if (wchest.getValue().network.equals(network)) {
                 plugin.allNetworkBlocks.remove(wchest.getValue().chest);
-                plugin.allNetworkBlocks.remove(Util.doubleChest(wchest.getValue().chest));
+                plugin.allNetworkBlocks.remove(plugin.util.doubleChest(wchest.getValue().chest));
                 plugin.allNetworkBlocks.remove(wchest.getValue().sign);
                 updateSign(wchest.getValue().sign, netName, whoDeleted);
                 netItemsToDel.add(wchest.getKey());
@@ -489,7 +495,7 @@ public class CommandHandler {
         for(Entry<Block, NetworkItem> dchest : network.depositChests.entrySet()) {
             if (dchest.getValue().network.equals(network)) {
                 plugin.allNetworkBlocks.remove(dchest.getValue().chest);
-                plugin.allNetworkBlocks.remove(Util.doubleChest(dchest.getValue().chest));
+                plugin.allNetworkBlocks.remove(plugin.util.doubleChest(dchest.getValue().chest));
                 plugin.allNetworkBlocks.remove(dchest.getValue().sign);
                 updateSign(dchest.getValue().sign, netName, whoDeleted);
                 netItemsToDel.add(dchest.getKey());
@@ -504,15 +510,15 @@ public class CommandHandler {
         }
         for(SortChest chest : network.sortChests) {
             plugin.allNetworkBlocks.remove(chest.block);
-            plugin.allNetworkBlocks.remove(Util.doubleChest(chest.block));
+            plugin.allNetworkBlocks.remove(plugin.util.doubleChest(chest.block));
             plugin.allNetworkBlocks.remove(chest.sign);
             updateSign(chest.sign, netName, whoDeleted);
         }
         for(Block netBlock : netItemsToDel) {
             network.depositChests.remove(netBlock);
-            network.depositChests.remove(Util.doubleChest(netBlock));
+            network.depositChests.remove(plugin.util.doubleChest(netBlock));
             network.withdrawChests.remove(netBlock);
-            network.withdrawChests.remove(Util.doubleChest(netBlock));
+            network.withdrawChests.remove(plugin.util.doubleChest(netBlock));
             network.dropSigns.remove(netBlock);
         }
         plugin.networks.get(ownerName).remove(network);
@@ -659,5 +665,70 @@ public class CommandHandler {
             if (itemData == 15) return "BONE_MEAL";
         }
         return item.getType().name();
+    }
+
+    private boolean sortPlayerInventory(int startIndex, CommandSender sender, String netName) {
+        Player player = (Player) sender;
+        Inventory inv = player.getInventory();
+        SortNetwork net = plugin.findNetwork(player.getName(), netName);
+        if (net != null) {
+            ItemStack[] contents = inv.getContents();
+            int i;
+            ItemStack is;
+            for(i = startIndex; i < contents.length; i++) {
+                is = contents[i];
+                if (is != null) {
+                    if (net.sortItem(is)) {
+                        contents[i] = null;
+                    }
+                }
+            }
+            inv.setContents(contents);
+            sender.sendMessage(ChatColor.GREEN + "Inventory sorted into " + netName);
+            return true;
+        }
+        else {
+            sender.sendMessage(ChatColor.RED + "The network '" + netName + "' could not be found.");
+            return true;
+        }
+    }
+
+    private boolean checkIfInUse(Player player, SortNetwork network) {
+        if (plugin.asListener.chestLock.containsValue(network)) {
+            String user = "";
+            for(Entry<String, SortNetwork> sortNet : plugin.asListener.chestLock.entrySet()) {
+                if (sortNet.getValue().equals(network)) {
+                    user = sortNet.getKey();
+                    break;
+                }
+            }
+            //Transaction Fail someone else is using the withdraw function
+            player.sendMessage("This network is being withdrawn from by " + ChatColor.YELLOW + user);
+            player.sendMessage(ChatColor.GOLD + "Please wait...");
+            return true;
+        }
+        return false;
+    }
+
+    private boolean doCommandWithdraw(Player player, SortNetwork network, String owner, String netName) {
+        CustomPlayer settings = CustomPlayer.getSettings(player);
+        if (checkIfInUse(player, network)) return true;
+        plugin.asListener.chestLock.put(player.getName(), network);
+        settings.netName = netName;
+        settings.owner = owner;
+        settings.playerName = player.getName();
+        settings.sortNetwork = network;
+        settings.withdrawInventory = Bukkit.createInventory(null, 54, netName + " network inventory");
+        if (plugin.util.updateInventoryList(player, settings)) {
+            Collections.sort(settings.inventory, new IntegerComparator());
+            plugin.util.updateChestInventory(player, settings);
+            player.openInventory(settings.withdrawInventory);
+        }
+        else {
+            player.sendMessage("The network - " + ChatColor.YELLOW + netName + ChatColor.WHITE + " - is empty.");
+            plugin.asListener.chestLock.remove(player.getName());
+            settings.clearPlayer();
+        }
+        return true;
     }
 }
