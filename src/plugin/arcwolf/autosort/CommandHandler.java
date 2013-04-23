@@ -34,10 +34,53 @@ public class CommandHandler {
         String commandName = cmd.getName();
         Player player = (Player) sender;
         if (commandName.equalsIgnoreCase("autosort") && plugin.playerHasPermission(player, "autosort.use")) {
-            if (args.length == 1) { return sortPlayerInventory(9, sender, args[0]); }
+            if (args.length == 1) {
+                SortNetwork network = plugin.findNetwork(player.getName(), args[0]);
+                if (network == null) {
+                    sender.sendMessage(ChatColor.RED + "The network '" + args[0] + "' could not be found.");
+                    sender.sendMessage("Try " + ChatColor.YELLOW + " /autosort <ownerName> " + args[0]);
+                    return true;
+                }
+                return sortPlayerInventory(9, sender, player.getName(), args[0], network);
+            }
+            else if (args.length == 2) {
+                SortNetwork network = plugin.findNetwork(args[0], args[1]);
+                if (network == null) {
+                    sender.sendMessage(ChatColor.RED + "The network '" + args[1] + "' could not be found.");
+                    return true;
+                }
+                if ((network.owner.equals(player.getName()) || network.members.contains(player.getName())) || plugin.playerHasPermission(player, "autosort.override")) {
+                    return sortPlayerInventory(9, sender, args[0], args[1], network);
+                }
+                else {
+                    sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + args[1] + " network.");
+                    return true;
+                }
+            }
         }
         else if (commandName.equalsIgnoreCase("autosortall") && plugin.playerHasPermission(player, "autosort.use")) {
-            if (args.length == 1) { return sortPlayerInventory(0, sender, args[0]); }
+            if (args.length == 1) {
+                SortNetwork network = plugin.findNetwork(player.getName(), args[0]);
+                if (network == null) {
+                    sender.sendMessage(ChatColor.RED + "The network '" + args[0] + "' could not be found.");
+                    return true;
+                }
+                return sortPlayerInventory(0, sender, player.getName(), args[0], network);
+            }
+            else if (args.length == 2) {
+                SortNetwork network = plugin.findNetwork(args[0], args[1]);
+                if (network == null) {
+                    sender.sendMessage(ChatColor.RED + "The network '" + args[1] + "' could not be found.");
+                    return true;
+                }
+                if ((network.owner.equals(player.getName()) || network.members.contains(player.getName())) || plugin.playerHasPermission(player, "autosort.override")) {
+                    return sortPlayerInventory(0, sender, args[0], args[1], network);
+                }
+                else {
+                    sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + args[1] + " network.");
+                    return true;
+                }
+            }
         }
         else if (commandName.equalsIgnoreCase("asreload") && plugin.playerHasPermission(player, "autosort.reload")) {
             if (args.length == 0) {
@@ -667,30 +710,23 @@ public class CommandHandler {
         return item.getType().name();
     }
 
-    private boolean sortPlayerInventory(int startIndex, CommandSender sender, String netName) {
+    private boolean sortPlayerInventory(int startIndex, CommandSender sender, String owner, String netName, SortNetwork net) {
         Player player = (Player) sender;
         Inventory inv = player.getInventory();
-        SortNetwork net = plugin.findNetwork(player.getName(), netName);
-        if (net != null) {
-            ItemStack[] contents = inv.getContents();
-            int i;
-            ItemStack is;
-            for(i = startIndex; i < contents.length; i++) {
-                is = contents[i];
-                if (is != null) {
-                    if (net.sortItem(is)) {
-                        contents[i] = null;
-                    }
+        ItemStack[] contents = inv.getContents();
+        int i;
+        ItemStack is;
+        for(i = startIndex; i < contents.length; i++) {
+            is = contents[i];
+            if (is != null) {
+                if (net.sortItem(is)) {
+                    contents[i] = null;
                 }
             }
-            inv.setContents(contents);
-            sender.sendMessage(ChatColor.GREEN + "Inventory sorted into " + netName);
-            return true;
         }
-        else {
-            sender.sendMessage(ChatColor.RED + "The network '" + netName + "' could not be found.");
-            return true;
-        }
+        inv.setContents(contents);
+        sender.sendMessage(ChatColor.GREEN + "Inventory sorted into " + netName);
+        return true;
     }
 
     private boolean checkIfInUse(Player player, SortNetwork network) {
