@@ -37,7 +37,7 @@ public class CommandHandler {
             if (args.length == 1) {
                 SortNetwork network = plugin.findNetwork(player.getName(), args[0]);
                 if (network == null) {
-                    sender.sendMessage(ChatColor.RED + "The network '" + args[0] + "' could not be found.");
+                    sender.sendMessage(ChatColor.RED + "The network '" + ChatColor.YELLOW + args[0] + ChatColor.WHITE + "' could not be found.");
                     sender.sendMessage("Try " + ChatColor.YELLOW + " /autosort <ownerName> " + args[0]);
                     return true;
                 }
@@ -46,14 +46,14 @@ public class CommandHandler {
             else if (args.length == 2) {
                 SortNetwork network = plugin.findNetwork(args[0], args[1]);
                 if (network == null) {
-                    sender.sendMessage(ChatColor.RED + "The network '" + args[1] + "' could not be found.");
+                    sender.sendMessage(ChatColor.RED + "The network '" + ChatColor.YELLOW + args[1] + ChatColor.WHITE + "' could not be found.");
                     return true;
                 }
                 if ((network.owner.equals(player.getName()) || network.members.contains(player.getName())) || plugin.playerHasPermission(player, "autosort.override")) {
                     return sortPlayerInventory(9, sender, args[0], args[1], network);
                 }
                 else {
-                    sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + args[1] + " network.");
+                    sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
                     return true;
                 }
             }
@@ -62,7 +62,8 @@ public class CommandHandler {
             if (args.length == 1) {
                 SortNetwork network = plugin.findNetwork(player.getName(), args[0]);
                 if (network == null) {
-                    sender.sendMessage(ChatColor.RED + "The network '" + args[0] + "' could not be found.");
+                    sender.sendMessage(ChatColor.RED + "The network '" + ChatColor.YELLOW + args[0] + ChatColor.WHITE + "' could not be found.");
+                    sender.sendMessage("Try " + ChatColor.YELLOW + " /autosortall <ownerName> " + args[0]);
                     return true;
                 }
                 return sortPlayerInventory(0, sender, player.getName(), args[0], network);
@@ -70,14 +71,14 @@ public class CommandHandler {
             else if (args.length == 2) {
                 SortNetwork network = plugin.findNetwork(args[0], args[1]);
                 if (network == null) {
-                    sender.sendMessage(ChatColor.RED + "The network '" + args[1] + "' could not be found.");
+                    sender.sendMessage(ChatColor.RED + "The network '" + ChatColor.YELLOW + args[1] + ChatColor.WHITE + "' could not be found.");
                     return true;
                 }
                 if ((network.owner.equals(player.getName()) || network.members.contains(player.getName())) || plugin.playerHasPermission(player, "autosort.override")) {
                     return sortPlayerInventory(0, sender, args[0], args[1], network);
                 }
                 else {
-                    sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + args[1] + " network.");
+                    sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
                     return true;
                 }
             }
@@ -304,8 +305,8 @@ public class CommandHandler {
             // /asremnet <OwnerName> <networkName>
             String ownerName = args[0];
             String netName = args[1];
+            if (!deleteNetwork(sender, ownerName, netName, sender.getName())) return true;
             sender.sendMessage(ChatColor.YELLOW + "The network ( " + ChatColor.WHITE + netName + ChatColor.YELLOW + " ) owned by ( " + ChatColor.WHITE + ownerName + ChatColor.YELLOW + " ) is deleted.");
-            deleteNetwork(ownerName, netName, sender.getName());
             plugin.saveVersion5Network();
             return true;
         }
@@ -333,7 +334,7 @@ public class CommandHandler {
                     return doCommandWithdraw(player, network, owner, netName);
                 }
                 else {
-                    sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + args[1] + " network.");
+                    sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
                     return true;
                 }
             }
@@ -515,16 +516,22 @@ public class CommandHandler {
             // /asremnet <OwnerName> <networkName>
             String ownerName = args[0];
             String netName = args[1];
+            if (!deleteNetwork(sender, ownerName, netName, sender.getName())) return true;
             sender.sendMessage(ChatColor.YELLOW + "The network ( " + ChatColor.WHITE + netName + ChatColor.YELLOW + " ) owned by ( " + ChatColor.WHITE + ownerName + ChatColor.YELLOW + " ) is deleted.");
-            deleteNetwork(ownerName, netName, sender.getName());
             plugin.saveVersion5Network();
             return true;
         }
         return false;
     }
 
-    private void deleteNetwork(String ownerName, String netName, String whoDeleted) {
+    private boolean deleteNetwork(CommandSender player, String ownerName, String netName, String whoDeleted) {
         SortNetwork network = plugin.findNetwork(ownerName, netName);
+        if (network == null) {
+            player.sendMessage(ChatColor.RED + "The network ( " + ChatColor.WHITE + netName + ChatColor.RED + " ) owned by ( " + ChatColor.WHITE + ownerName + ChatColor.RED + " ) is not found.");
+            return false;
+        }
+        else if (checkIfInUse(player, network)) return false;
+        
         List<Block> netItemsToDel = new ArrayList<Block>();
         for(Entry<Block, NetworkItem> wchest : network.withdrawChests.entrySet()) {
             if (wchest.getValue().network.equals(network)) {
@@ -565,6 +572,7 @@ public class CommandHandler {
             network.dropSigns.remove(netBlock);
         }
         plugin.networks.get(ownerName).remove(network);
+        return true;
     }
 
     private void updateSign(Block sign, String netName, String whoDeleted) {
@@ -714,9 +722,8 @@ public class CommandHandler {
         Player player = (Player) sender;
         Inventory inv = player.getInventory();
         ItemStack[] contents = inv.getContents();
-        int i;
         ItemStack is;
-        for(i = startIndex; i < contents.length; i++) {
+        for(int i = startIndex; i < contents.length; i++) {
             is = contents[i];
             if (is != null) {
                 if (net.sortItem(is)) {
@@ -725,11 +732,11 @@ public class CommandHandler {
             }
         }
         inv.setContents(contents);
-        sender.sendMessage(ChatColor.GREEN + "Inventory sorted into " + netName);
+        sender.sendMessage(ChatColor.GREEN + "Inventory sorted into " + ChatColor.YELLOW + netName + ChatColor.WHITE + " owned by " + ChatColor.YELLOW + owner);
         return true;
     }
 
-    private boolean checkIfInUse(Player player, SortNetwork network) {
+    private boolean checkIfInUse(CommandSender player, SortNetwork network) {
         if (plugin.asListener.chestLock.containsValue(network)) {
             String user = "";
             for(Entry<String, SortNetwork> sortNet : plugin.asListener.chestLock.entrySet()) {
@@ -739,7 +746,7 @@ public class CommandHandler {
                 }
             }
             //Transaction Fail someone else is using the withdraw function
-            player.sendMessage("This network is being withdrawn from by " + ChatColor.YELLOW + user);
+            player.sendMessage("The network " + ChatColor.YELLOW + network.netName + ChatColor.WHITE + " is being withdrawn from by " + ChatColor.YELLOW + user);
             player.sendMessage(ChatColor.GOLD + "Please wait...");
             return true;
         }
