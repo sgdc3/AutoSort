@@ -287,7 +287,8 @@ public class Util {
         plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 
             public void run() {
-                plugin.util.updateChestInventory(player, settings);
+                if (settings.withdrawInventory != null)
+                    plugin.util.updateChestInventory(player, settings);
             }
         }, 3);
     }
