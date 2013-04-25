@@ -40,6 +40,8 @@ import org.bukkit.inventory.ItemStack;
 import plugin.arcwolf.autosort.Network.NetworkItem;
 import plugin.arcwolf.autosort.Network.SortChest;
 import plugin.arcwolf.autosort.Network.SortNetwork;
+import plugin.arcwolf.lavafurnace.FurnaceObject;
+import plugin.arcwolf.lavafurnace.LavaFurnace;
 
 public class AutoSortListener implements Listener {
 
@@ -401,6 +403,11 @@ public class AutoSortListener implements Listener {
                                 event.setCancelled(true);
                                 return;
                             }
+                            if (!lavaFurnaceCheck(player, sortNetwork, storageBlock, part)) {
+                                event.getPlayer().sendMessage(ChatColor.RED + "You are not the owner of this LavaFurnace.");
+                                event.setCancelled(true);
+                                return;
+                            }
                         }
                         if (plugin.util.isValidInventoryBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
                             boolean dd = !mat.contains(":");
@@ -701,6 +708,18 @@ public class AutoSortListener implements Listener {
     }
 
     //TODO Helper Methods / Classes
+
+    private boolean lavaFurnaceCheck(Player player, SortNetwork sortNetwork, Block storageBlock, String part) {
+        if (!part.toLowerCase().contains("lavafurnace")) return true;
+        LavaFurnace lfp = (LavaFurnace) LavaFurnace.plugin;
+        FurnaceObject fo = lfp.furnaceHelper.findFurnaceFromProductionChest(sortNetwork.owner, storageBlock);
+        if (fo == null) {
+            fo = lfp.furnaceHelper.findFurnaceFromProductionChest(sortNetwork.owner, plugin.util.doubleChest(storageBlock));
+        }
+        if (fo == null) { return true; }
+        if (fo.creator.equals(player.getName()) || plugin.playerHasPermission(player, "autosort.override")) return true;
+        return false;
+    }
 
     private boolean hopperDropperStopper(List<Block> blocksToTest, Player player) {
         String owner = player.getName();

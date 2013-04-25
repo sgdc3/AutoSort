@@ -162,7 +162,7 @@ public class SortTask implements Runnable {
                 }
             }
         } catch (Exception e) {
-            AutoSort.LOGGER.warning("[AutoSort] Error in LavaFurnaec Thread");
+            AutoSort.LOGGER.warning("[AutoSort] Error in LavaFurnace Thread");
             e.printStackTrace();
         }
     }
