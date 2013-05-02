@@ -76,6 +76,7 @@ public class SortTask implements Runnable {
                         if (depChest.getKey().getChunk().isLoaded()) {
                             if (net != null && plugin.util.isValidDepositWithdrawBlock(depChest.getKey())) {
                                 InventoryHolder chest = Util.getInventoryHolder(depChest.getKey());
+                                if (chest == null) continue;
                                 Inventory inv = chest.getInventory();
                                 ItemStack[] contents = inv.getContents();
                                 int i;

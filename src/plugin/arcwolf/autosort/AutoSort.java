@@ -673,6 +673,13 @@ public class AutoSort extends JavaPlugin {
             }
         }
 
+        for(Entry<String, List<SortNetwork>> nets : networks.entrySet())
+            for(SortNetwork network : nets.getValue())
+                if (network.sortChests.size() == 0 && network.depositChests.size() == 0 && network.depositChests.size() == 0 && network.dropSigns.size() == 0) {
+                    removedNets.add(network);
+                    LOGGER.info(pluginName + ": Network " + network.netName + " removed (Empty Network).");
+                }
+
         for(SortNetwork netName : removedNets)
             networks.get(netName.owner).remove(netName);
 
