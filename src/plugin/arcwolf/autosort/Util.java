@@ -42,11 +42,11 @@ public class Util {
         return false;
     }
 
-    public boolean isValidDepositWithdrawBlock(Block block) {
-        return isValidDepositWithdrawBlock(null, block, false);
+    public boolean isValidDepositBlock(Block block) {
+        return isValidDepositBlock(null, block, false);
     }
 
-    public boolean isValidDepositWithdrawBlock(Player player, Block block, Boolean isEventCheck) {
+    public boolean isValidDepositBlock(Player player, Block block, Boolean isEventCheck) {
         if (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST) ||
                 block.getType().equals(Material.FURNACE) || block.getType().equals(Material.BURNING_FURNACE) ||
                 block.getType().equals(Material.HOPPER)) { return true; }
@@ -54,6 +54,12 @@ public class Util {
         return false;
     }
 
+    public boolean isValidWithdrawBlock(Player player, Block block, Boolean isEventCheck){
+        if (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST)) { return true; }
+        if (isEventCheck) player.sendMessage(ChatColor.RED + "Must be a chest or trapped chest!");
+        return false;
+    }
+    
     public static ItemStack parseMaterialID(String str) {
         if (str != null) {
             if (str.contains(":")) {

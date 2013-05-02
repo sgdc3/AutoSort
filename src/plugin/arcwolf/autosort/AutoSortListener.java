@@ -293,7 +293,7 @@ public class AutoSortListener implements Listener {
                     if (option.startsWith("D:")) {
                         storageBlock = getDirection(option.split(":")[1], signBlock);
                     }
-                    if (plugin.util.isValidDepositWithdrawBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
+                    if (plugin.util.isValidWithdrawBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
                         if (!AutoSort.worldRestrict || sortNetwork.world.equalsIgnoreCase(signBlock.getWorld().getName().toLowerCase())) {
                             int prox = getProximity(netName);
                             Location origin = getOrigin(sortNetwork.sortChests);
@@ -365,7 +365,7 @@ public class AutoSortListener implements Listener {
                     event.setLine(2, mat2);
 
                     if (mat.equalsIgnoreCase("")) { //TODO Deposit Chest
-                        if (plugin.util.isValidDepositWithdrawBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
+                        if (plugin.util.isValidDepositBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
                             if (!AutoSort.worldRestrict || sortNetwork.world.equalsIgnoreCase(signBlock.getWorld().getName().toLowerCase())) {
                                 int prox = getProximity(netName);
                                 Location origin = getOrigin(sortNetwork.sortChests);

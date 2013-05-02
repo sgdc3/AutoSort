@@ -583,7 +583,7 @@ public class AutoSort extends JavaPlugin {
                 Block sign = netItem.sign;
                 if (!chest.getChunk().isLoaded()) chest.getChunk().load();
                 if (!sign.getChunk().isLoaded()) sign.getChunk().load();
-                if (!util.isValidDepositWithdrawBlock(chest)) {
+                if (!util.isValidDepositBlock(chest)) {
                     removeDepositChests.add(chest);
                     removeNetMapBlock.add(chest);
                     removeNetMapBlock.add(sign);
@@ -618,7 +618,7 @@ public class AutoSort extends JavaPlugin {
                 Block sign = netItem.sign;
                 if (!chest.getChunk().isLoaded()) chest.getChunk().load();
                 if (!sign.getChunk().isLoaded()) sign.getChunk().load();
-                if (!util.isValidDepositWithdrawBlock(chest)) {
+                if (!util.isValidDepositBlock(chest)) {
                     removeWithdrawChests.add(chest);
                     removeNetMapBlock.add(chest);
                     removeNetMapBlock.add(sign);

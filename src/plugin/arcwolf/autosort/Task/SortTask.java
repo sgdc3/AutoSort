@@ -74,7 +74,7 @@ public class SortTask implements Runnable {
                 for(SortNetwork net : networks)
                     for(Entry<Block, NetworkItem> depChest : net.depositChests.entrySet()) {
                         if (depChest.getKey().getChunk().isLoaded()) {
-                            if (net != null && plugin.util.isValidDepositWithdrawBlock(depChest.getKey())) {
+                            if (net != null && plugin.util.isValidDepositBlock(depChest.getKey())) {
                                 InventoryHolder chest = Util.getInventoryHolder(depChest.getKey());
                                 if (chest == null) continue;
                                 Inventory inv = chest.getInventory();
