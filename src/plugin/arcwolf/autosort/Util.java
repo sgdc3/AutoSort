@@ -54,12 +54,12 @@ public class Util {
         return false;
     }
 
-    public boolean isValidWithdrawBlock(Player player, Block block, Boolean isEventCheck){
+    public boolean isValidWithdrawBlock(Player player, Block block, Boolean isEventCheck) {
         if (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST)) { return true; }
         if (isEventCheck) player.sendMessage(ChatColor.RED + "Must be a chest or trapped chest!");
         return false;
     }
-    
+
     public static ItemStack parseMaterialID(String str) {
         if (str != null) {
             if (str.contains(":")) {
@@ -111,16 +111,16 @@ public class Util {
             if (state == null) {
                 return null;
             }
-            else if (state instanceof Dispenser) {
+            else if (state instanceof Dispenser && block.getType().equals(Material.DISPENSER)) {
                 invHolder = (Dispenser) state;
             }
-            else if (state instanceof Chest) {
+            else if (state instanceof Chest && (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST))) {
                 invHolder = (Chest) state;
             }
-            else if (state instanceof Dropper) {
+            else if (state instanceof Dropper && block.getType().equals(Material.DROPPER)) {
                 invHolder = (Dropper) state;
             }
-            else if (state instanceof Hopper) {
+            else if (state instanceof Hopper && block.getType().equals(Material.HOPPER)) {
                 invHolder = (Hopper) state;
             }
         }
@@ -137,15 +137,15 @@ public class Util {
     }
 
     public Inventory getInventory(Block block) {
-        if (block.getState() instanceof Chest)
+        if (block.getState() instanceof Chest && (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST)))
             return ((Chest) block.getState()).getInventory();
-        else if (block.getState() instanceof Dispenser) {
+        else if (block.getState() instanceof Dispenser && block.getType().equals(Material.DISPENSER)) {
             return ((Dispenser) block.getState()).getInventory();
         }
-        else if (block.getState() instanceof Dropper) {
+        else if (block.getState() instanceof Dropper && block.getType().equals(Material.DROPPER)) {
             return ((Dropper) block.getState()).getInventory();
         }
-        else if (block.getState() instanceof Hopper) {
+        else if (block.getState() instanceof Hopper && block.getType().equals(Material.HOPPER)) {
             return ((Hopper) block.getState()).getInventory();
         }
         else
@@ -259,7 +259,7 @@ public class Util {
         Location dropLoc = player.getLocation();
         for(int i = 0; i < inv.getSize(); i++) {
             if (inv.getItem(i) != null) {
-                if (!settings.sortNetwork.sortItem(inv.getItem(i))) {
+                if (!settings.sortNetwork.quickSortItem(inv.getItem(i))) {
                     dropLoc.getWorld().dropItem(dropLoc, inv.getItem(i));
                     tooManyItems = true;
                 }
@@ -270,6 +270,7 @@ public class Util {
 
     public boolean updateInventoryList(Player player, CustomPlayer settings) {
         for(SortChest chest : settings.sortNetwork.sortChests) {
+            if (chest.signText.contains("LAVAFURNACE")) continue;
             Inventory inv = Util.getInventoryHolder(chest.block).getInventory();
             if (inv == null) continue;
             for(ItemStack item : inv) {

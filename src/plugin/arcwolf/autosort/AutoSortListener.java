@@ -578,6 +578,7 @@ public class AutoSortListener implements Listener {
                     else {
                         // Sort Chest
                         SortChest sc = network.findSortChest(storageBlock);
+                        if (sc == null) return;
                         plugin.allNetworkBlocks.remove(sc.block);
                         plugin.allNetworkBlocks.remove(plugin.util.doubleChest(sc.block));
                         plugin.allNetworkBlocks.remove(sc.sign);
@@ -631,7 +632,7 @@ public class AutoSortListener implements Listener {
                     if (netItem == null) netItem = network.depositChests.get(plugin.util.doubleChest(block));
                     if (netItem == null) return;
                     Block signBlock = netItem.sign;
-                    if (signBlock.getType().equals(Material.WALL_SIGN)) {
+                    if (signBlock.getType().equals(Material.WALL_SIGN) && signBlock.getLocation().getBlock().getType().equals(Material.WALL_SIGN)) {
                         Sign chestSign = (Sign) signBlock.getState();
                         for(int line = 0; line < 4; line++)
                             chestSign.setLine(line, "");
@@ -666,7 +667,7 @@ public class AutoSortListener implements Listener {
                         if (netItem == null) netItem = network.withdrawChests.get(plugin.util.doubleChest(block));
                         if (netItem == null) return;
                         Block signBlock = netItem.sign;
-                        if (signBlock.getType().equals(Material.WALL_SIGN)) {
+                        if (signBlock.getType().equals(Material.WALL_SIGN) && signBlock.getLocation().getBlock().getType().equals(Material.WALL_SIGN)) {
                             Sign chestSign = (Sign) signBlock.getState();
                             for(int line = 0; line < 4; line++)
                                 chestSign.setLine(line, "");
@@ -684,7 +685,7 @@ public class AutoSortListener implements Listener {
                     SortChest sortChest = network.findSortChest(block);
                     if (sortChest == null) sortChest = network.findSortChest(plugin.util.doubleChest(block));
                     if (sortChest == null) return;
-                    if (sortChest.sign.getType().equals(Material.WALL_SIGN)) {
+                    if (sortChest.sign.getType().equals(Material.WALL_SIGN) && sortChest.sign.getLocation().getBlock().getType().equals(Material.WALL_SIGN)) {
                         Sign chestSign = (Sign) sortChest.sign.getState();
                         for(int line = 0; line < 4; line++)
                             chestSign.setLine(line, "");

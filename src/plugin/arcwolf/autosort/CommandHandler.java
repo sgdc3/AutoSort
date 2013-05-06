@@ -37,7 +37,7 @@ public class CommandHandler {
             if (args.length == 1) {
                 SortNetwork network = plugin.findNetwork(player.getName(), args[0]);
                 if (network == null) {
-                    sender.sendMessage(ChatColor.RED + "The network '" + ChatColor.YELLOW + args[0] + ChatColor.WHITE + "' could not be found.");
+                    sender.sendMessage(ChatColor.RED + "The network " + ChatColor.YELLOW + "'" + args[0] + "'" + ChatColor.RED + " could not be found.");
                     sender.sendMessage("Try " + ChatColor.YELLOW + " /autosort <ownerName> " + args[0]);
                     return true;
                 }
@@ -46,7 +46,7 @@ public class CommandHandler {
             else if (args.length == 2) {
                 SortNetwork network = plugin.findNetwork(args[0], args[1]);
                 if (network == null) {
-                    sender.sendMessage(ChatColor.RED + "The network '" + ChatColor.YELLOW + args[1] + ChatColor.WHITE + "' could not be found.");
+                    sender.sendMessage(ChatColor.RED + "The network " + ChatColor.YELLOW + "'" + args[1] + "'" + ChatColor.RED + " could not be found.");
                     return true;
                 }
                 if ((network.owner.equals(player.getName()) || network.members.contains(player.getName())) || plugin.playerHasPermission(player, "autosort.override")) {
@@ -62,7 +62,7 @@ public class CommandHandler {
             if (args.length == 1) {
                 SortNetwork network = plugin.findNetwork(player.getName(), args[0]);
                 if (network == null) {
-                    sender.sendMessage(ChatColor.RED + "The network '" + ChatColor.YELLOW + args[0] + ChatColor.WHITE + "' could not be found.");
+                    sender.sendMessage(ChatColor.RED + "The network " + ChatColor.YELLOW + "'" + args[0] + "'" + ChatColor.RED + " could not be found.");
                     sender.sendMessage("Try " + ChatColor.YELLOW + " /autosortall <ownerName> " + args[0]);
                     return true;
                 }
@@ -71,7 +71,7 @@ public class CommandHandler {
             else if (args.length == 2) {
                 SortNetwork network = plugin.findNetwork(args[0], args[1]);
                 if (network == null) {
-                    sender.sendMessage(ChatColor.RED + "The network '" + ChatColor.YELLOW + args[1] + ChatColor.WHITE + "' could not be found.");
+                    sender.sendMessage(ChatColor.RED + "The network " + ChatColor.YELLOW + "'" + args[1] + "'" + ChatColor.RED + " could not be found.");
                     return true;
                 }
                 if ((network.owner.equals(player.getName()) || network.members.contains(player.getName())) || plugin.playerHasPermission(player, "autosort.override")) {
@@ -165,8 +165,10 @@ public class CommandHandler {
         }
         else if (commandName.equalsIgnoreCase("ascleanup") && plugin.playerHasPermission(player, "autosort.ascleanup")) {
             sender.sendMessage(ChatColor.BLUE + "Cleaning up all AutoSort networks...");
-            plugin.cleanupNetwork();
+            AutoSort.LOGGER.info("AutoSort: Command Cleanup Process Started.");
+            if (!plugin.cleanupNetwork()) AutoSort.LOGGER.info("AutoSort: All networks are clean.");
             sender.sendMessage("Check server log for information on cleanup procedure.");
+            AutoSort.LOGGER.info("AutoSort: Finished Command Cleanup Process.");
             sender.sendMessage(ChatColor.BLUE + "Done.");
             return true;
         }
@@ -482,8 +484,7 @@ public class CommandHandler {
         }
         else if (commandName.equalsIgnoreCase("ascleanup")) {
             sender.sendMessage(ChatColor.BLUE + "Cleaning up all AutoSort networks...");
-            plugin.cleanupNetwork();
-            sender.sendMessage("Check server log for information on cleanup procedure.");
+            if (!plugin.cleanupNetwork()) AutoSort.LOGGER.info("AutoSort: All networks are clean.");
             sender.sendMessage(ChatColor.BLUE + "Done.");
             return true;
         }
@@ -531,7 +532,7 @@ public class CommandHandler {
             return false;
         }
         else if (checkIfInUse(player, network)) return false;
-        
+
         List<Block> netItemsToDel = new ArrayList<Block>();
         for(Entry<Block, NetworkItem> wchest : network.withdrawChests.entrySet()) {
             if (wchest.getValue().network.equals(network)) {

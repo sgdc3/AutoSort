@@ -66,9 +66,13 @@ public class SortNetwork {
         return null;
     }
 
-    public boolean sortItem(ItemStack item) {
-        if (AutoSort.emptiesFirst) // Sort Chests by emptiest first
+    public boolean sortItem(ItemStack item) { // Sort Chests by emptiest first
+        if (AutoSort.emptiesFirst)
             Collections.sort(sortChests, new amountComparator(item));
+        return sortItem(item, 4);
+    }
+
+    public boolean quickSortItem(ItemStack item) { // Sort Chests without empties first sort
         return sortItem(item, 4);
     }
 
@@ -130,14 +134,16 @@ public class SortNetwork {
         if (invHolder != null) {
             chest.block.getChunk().load();
             if (chest.block.getChunk().isLoaded()) {
-                Inventory inv = invHolder.getInventory();
                 try {
+                    Inventory inv = invHolder.getInventory();
+                    if (inv == null) return false;
                     if (item != null) {
                         Map<Integer, ItemStack> couldntFit = inv.addItem(item);
                         if (couldntFit.isEmpty()) { return true; }
                     }
                 } catch (Exception e) {
-                    //e.printStackTrace();
+                    AutoSort.LOGGER.warning("[AutoSort] Error occured moving item to chest. " + chest.block.getLocation());
+                    e.printStackTrace();
                     return false;
                 }
             }
