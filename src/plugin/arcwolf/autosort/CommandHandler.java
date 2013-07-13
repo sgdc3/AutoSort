@@ -175,6 +175,10 @@ public class CommandHandler {
         else if (commandName.equalsIgnoreCase("addtonet") && plugin.playerHasPermission(player, "autosort.addtonet")) {
             if (args.length > 1) {
                 String netName = args[0];
+                if (netName.equalsIgnoreCase("$Public")) {
+                    sender.sendMessage(ChatColor.YELLOW + "Public networks allow everyone already.");
+                    return true;
+                }
                 SortNetwork net = plugin.findNetwork(player.getName(), netName);
                 if (net != null) {
                     int count = 0;
@@ -228,6 +232,10 @@ public class CommandHandler {
         else if (commandName.equalsIgnoreCase("remfromnet") && plugin.playerHasPermission(player, "autosort.remfromnet")) {
             if (args.length > 1) {
                 String netName = args[0];
+                if (netName.equalsIgnoreCase("$Public")) {
+                    sender.sendMessage(ChatColor.YELLOW + "Public networks allow everyone.");
+                    return true;
+                }
                 SortNetwork net = plugin.findNetwork(player.getName(), netName);
                 if (net != null) {
                     int count = 0;
@@ -357,6 +365,10 @@ public class CommandHandler {
         else if (commandName.equalsIgnoreCase("addtonet")) {
             if (args.length > 2) {
                 String netName = args[1];
+                if (netName.equalsIgnoreCase("$Public")) {
+                    sender.sendMessage(ChatColor.YELLOW + "Public networks allow everyone already.");
+                    return true;
+                }
                 String owner = args[0];
                 SortNetwork net = plugin.findNetwork(owner, netName);
                 net = plugin.findNetwork(owner, netName);
@@ -385,6 +397,10 @@ public class CommandHandler {
         else if (commandName.equalsIgnoreCase("remfromnet")) {
             if (args.length > 2) {
                 String netName = args[1];
+                if (netName.equalsIgnoreCase("$Public")) {
+                    sender.sendMessage(ChatColor.YELLOW + "Public networks allow everyone.");
+                    return true;
+                }
                 String owner = args[0];
                 SortNetwork net = plugin.findNetwork(owner, netName);
                 net = plugin.findNetwork(owner, netName);

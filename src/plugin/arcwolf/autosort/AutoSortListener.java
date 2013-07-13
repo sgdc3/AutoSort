@@ -218,7 +218,7 @@ public class AutoSortListener implements Listener {
         if (plugin.util.isValidInventoryBlock(player, block, false) || isValidSign(block)) {
             SortNetwork sortNetwork = plugin.allNetworkBlocks.get(block);
             if (sortNetwork == null) return;
-            if (!pName.equalsIgnoreCase(sortNetwork.owner) && !sortNetwork.members.contains(pName) && !plugin.playerHasPermission(player, "autosort.override")) {
+            if (!pName.equalsIgnoreCase(sortNetwork.owner) && !sortNetwork.members.contains(pName) && !plugin.playerHasPermission(player, "autosort.override") && !sortNetwork.netName.equalsIgnoreCase("$Public")) {
                 //Transaction Fail isnt owned by this player
                 player.sendMessage("This network is owned by " + ChatColor.YELLOW + sortNetwork.owner);
                 player.sendMessage(ChatColor.RED + "You can not access or modify this Network.");
@@ -277,13 +277,20 @@ public class AutoSortListener implements Listener {
             netName = lines[0].substring(1);
             if (netName.equals("")) {
                 player.sendMessage(ChatColor.RED + "You can't create a network without a name!");
+                event.setCancelled(true);
+                return;
+            }
+            if (netName.equalsIgnoreCase("$Public") && !plugin.playerHasPermission(player, "autosort.create.public")) {
+                player.sendMessage(ChatColor.RED + "You don't have permission to create a public network!");
+                event.setCancelled(true);
                 return;
             }
             sortNetwork = plugin.findNetwork(player.getName(), netName);
             if (sortNetwork == null && plugin.playerHasPermission(player, "autosort.create"))
                 sortNetwork = createNetwork(player, netName);
             else if (!plugin.playerHasPermission(player, "autosort.create")) {
-                player.sendMessage(ChatColor.RED + "You don't have permission to create AutoSort networks!" + plugin.playerHasPermission(player, "autosort.create"));
+                player.sendMessage(ChatColor.RED + "You don't have permission to create AutoSort networks!");
+                event.setCancelled(true);
                 return;
             }
         }

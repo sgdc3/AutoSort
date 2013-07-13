@@ -71,6 +71,7 @@ permissions:
       autosort.ignoreproximity: true
       autosort.listasgroups: true
       autosort.remnet: true
+      autosort.create.public: true
       
   autosort.common: 
     children:
