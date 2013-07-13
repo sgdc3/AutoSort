@@ -1,7 +1,7 @@
 name: AutoSort
 authors: [ArcWolf, TheJuggernaut0]
 main: plugin.arcwolf.autosort.AutoSort
-version: 0.8.3
+version: 0.8.2
 description: A chest inventory sorting plugin. Originally created by TheJuggernaut0. Updated / maintained by ArcWolf.
 commands:
   autosort:
