@@ -15,7 +15,7 @@ import net.milkbowl.vault.permission.Permission;
 import org.anjocaido.groupmanager.GroupManager;
 import com.nijikokun.bukkit.Permissions.Permissions;
 import de.bananaco.bpermissions.api.ApiLayer;
-import de.bananaco.bpermissions.api.util.CalculableType;
+import de.bananaco.bpermissions.api.CalculableType;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
 
 import org.bukkit.Location;
@@ -58,10 +58,10 @@ public class AutoSort extends JavaPlugin {
     public Map<String, List<SortNetwork>> networks = new HashMap<String, List<SortNetwork>>();
 
     public static Map<String, List<ItemStack>> customMatGroups = new HashMap<String, List<ItemStack>>();
-    public static Map<String, Integer> proximities = new HashMap<String, Integer>();
+    public static Map<String, ProxExcep> proximities = new HashMap<String, ProxExcep>();
     public static int defaultProx = 0;
 
-    public static boolean worldRestrict = false;
+    public boolean worldRestrict = false;
     public static boolean emptiesFirst = true;
     private boolean v4Loaded = false;
 
@@ -104,10 +104,13 @@ public class AutoSort extends JavaPlugin {
         emptiesFirst = getConfig().getBoolean("fill-emptier-first", false);
         defaultProx = getConfig().getInt("proximity", 0);
         ConfigurationSection proxSec = getConfig().getConfigurationSection("proximity-exceptions");
-        for(String key : proxSec.getKeys(false)) {
-            proximities.put(key, proxSec.getInt(key));
+        for(String owner : proxSec.getKeys(false)) {
+            ConfigurationSection username = proxSec.getConfigurationSection(owner);
+            for(String network : username.getKeys(false)) {
+                proximities.put(owner, new ProxExcep(owner, network, username.getInt(network)));
+            }
         }
-
+        
         getPermissionsPlugin();
         loadCustomGroups();
         v4Loaded = loadVersion4Save();
@@ -204,21 +207,21 @@ public class AutoSort extends JavaPlugin {
             }
             return bPermissions.has(player, command);
         }
-        else if (player.hasPermission(command)) {
+        else if (server.getPluginManager().getPlugin("PermissionsBukkit") != null && player.hasPermission(command)) {
             if (debug == 1) {
                 LOGGER.info("Bukkit Permissions " + command + " " + player.hasPermission(command));
             }
             return true;
         }
-        else if (permissionsEr && player.isOp()) {
+        else if (permissionsEr && (player.isOp() || player.hasPermission(command))) {
             if (debug == 1) {
-                LOGGER.info("Ops permissions " + command + " " + player.hasPermission(command));
+                LOGGER.info("Unknown permissions plugin " + command + " " + player.hasPermission(command));
             }
             return true;
         }
         else {
             if (debug == 1 && permissionsEr == true) {
-                LOGGER.info("No permissions?? " + command + " " + player.hasPermission(command));
+                LOGGER.info("Unknown permissions plugin " + command + " " + player.hasPermission(command));
             }
             return false;
         }
@@ -274,7 +277,7 @@ public class AutoSort extends JavaPlugin {
         }
         else {
             if (!permissionsEr) {
-                LOGGER.info(pluginName + ": No known permissions detected, Using Server OPs");
+                LOGGER.info(pluginName + ": Unknown permissions detected, Using Generic Permissions...");
                 permissionsEr = true;
             }
         }
@@ -579,10 +582,12 @@ public class AutoSort extends JavaPlugin {
             List<SortChest> removedChests = new ArrayList<SortChest>();
 
             for(NetworkItem netItem : network.depositChests.values()) {
+                boolean chestChunkLoaded = false;
+                boolean signChunkLoaded = false;
                 Block chest = netItem.chest.getLocation().getBlock();
                 Block sign = netItem.sign.getLocation().getBlock();
-                if (!chest.getChunk().isLoaded()) chest.getChunk().load();
-                if (!sign.getChunk().isLoaded()) sign.getChunk().load();
+                if (!chest.getChunk().isLoaded()) chestChunkLoaded = chest.getChunk().load();
+                if (!sign.getChunk().isLoaded()) signChunkLoaded = sign.getChunk().load();
                 if (!util.isValidDepositBlock(chest)) {
                     removeDepositChests.add(chest);
                     removeNetMapBlock.add(chest);
@@ -597,6 +602,8 @@ public class AutoSort extends JavaPlugin {
                     somethingCleaned = true;
                     LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No deposit sign).");
                 }
+                if (chestChunkLoaded) chest.getChunk().unload();
+                if (signChunkLoaded) sign.getChunk().unload();
             }
 
             for(Block chest : removeDepositChests)
@@ -604,23 +611,27 @@ public class AutoSort extends JavaPlugin {
 
             for(NetworkItem netItem : network.dropSigns.values()) {
                 Block sign = netItem.sign.getLocation().getBlock();
-                if (!sign.getChunk().isLoaded()) sign.getChunk().load();
+                boolean signChunkLoaded = false;
+                if (!sign.getChunk().isLoaded()) signChunkLoaded = sign.getChunk().load();
                 if (!sign.getType().equals(Material.SIGN_POST)) {
                     removeDropSigns.add(sign);
                     removeNetMapBlock.add(sign);
                     somethingCleaned = true;
                     LOGGER.info(pluginName + ": Sign at " + sign.getWorld().getName() + "," + sign.getLocation().getX() + "," + sign.getLocation().getY() + "," + sign.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No drop sign).");
                 }
+                if (signChunkLoaded) sign.getChunk().unload();
             }
 
             for(Block sign : removeDropSigns)
                 network.dropSigns.remove(sign);
 
             for(NetworkItem netItem : network.withdrawChests.values()) {
+                boolean chestChunkLoaded = false;
+                boolean signChunkLoaded = false;
                 Block chest = netItem.chest.getLocation().getBlock();
                 Block sign = netItem.sign.getLocation().getBlock();
-                if (!chest.getChunk().isLoaded()) chest.getChunk().load();
-                if (!sign.getChunk().isLoaded()) sign.getChunk().load();
+                if (!chest.getChunk().isLoaded()) chestChunkLoaded = chest.getChunk().load();
+                if (!sign.getChunk().isLoaded()) signChunkLoaded = sign.getChunk().load();
                 if (!util.isValidDepositBlock(chest)) {
                     removeWithdrawChests.add(chest);
                     removeNetMapBlock.add(chest);
@@ -635,16 +646,20 @@ public class AutoSort extends JavaPlugin {
                     somethingCleaned = true;
                     LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getLocation().getX() + "," + chest.getLocation().getY() + "," + chest.getLocation().getZ() + " in network " + netItem.network.netName + " removed (No Withdraw sign).");
                 }
+                if (chestChunkLoaded) chest.getChunk().unload();
+                if (signChunkLoaded) sign.getChunk().unload();
             }
 
             for(Block chest : removeWithdrawChests)
                 network.withdrawChests.remove(chest);
 
             for(SortChest sortChest : network.sortChests) {
+                boolean chestChunkLoaded = false;
+                boolean signChunkLoaded = false;
                 Block chest = sortChest.block.getLocation().getBlock();
                 Block sign = sortChest.sign.getLocation().getBlock();
-                if (!chest.getChunk().isLoaded()) chest.getChunk().load();
-                if (!sign.getChunk().isLoaded()) sign.getChunk().load();
+                if (!chest.getChunk().isLoaded()) chestChunkLoaded = chest.getChunk().load();
+                if (!sign.getChunk().isLoaded()) signChunkLoaded = sign.getChunk().load();
                 if (util.isValidInventoryBlock(chest)) {
                     if (sign.getType().equals(Material.WALL_SIGN)) {
                         if (!((Sign) sign.getState()).getLine(0).startsWith("*")) {
@@ -668,6 +683,8 @@ public class AutoSort extends JavaPlugin {
                     somethingCleaned = true;
                     LOGGER.info(pluginName + ": Chest at " + chest.getWorld().getName() + "," + chest.getX() + "," + chest.getY() + "," + chest.getZ() + " in network " + network.netName + " removed (Not a chest block).");
                 }
+                if (chestChunkLoaded) chest.getChunk().unload();
+                if (signChunkLoaded) sign.getChunk().unload();
             }
             for(SortChest chest : removedChests) {
                 network.sortChests.remove(chest);
@@ -926,11 +943,6 @@ public class AutoSort extends JavaPlugin {
                                 dir = BlockFace.DOWN;
                             }
                             if (dir == null) { return null; }
-                        }
-                        else if (opt.toLowerCase().contains("withdraw")) {
-                            // My version 4 setup so guess its ok because I'm the only one who used this version.
-                            // TODO remember to remove this code after converting my server!
-                            return sign;
                         }
                     }
                     Block maybeChest = sign.getRelative(dir);

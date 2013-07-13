@@ -3,8 +3,10 @@ worldRestrict: false
 fill-emptier-first: false
 proximity: 0
 proximity-exceptions:
-  example: 40
-  anotherExample: 150
+  exampleUser: 
+    exampleNetwork: 20
+  anotherExampleUser: 
+    anotherNetworkExample: 150
 customGroups:
   IRON_TOOLS:
   - 256

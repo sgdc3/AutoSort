@@ -106,6 +106,7 @@ public class SortTask implements Runnable {
                             if (chest.block.getChunk().isLoaded()) {
                                 if (chest.priority == i && plugin.util.isValidInventoryBlock(chest.block)) {
                                     maintainLavaFurnace(net, chest, chest.block);
+                                    if (chest.signText.contains("LAVAFURNACE")) continue; //TODO lavafurnace block
                                     Inventory inv = plugin.util.getInventory(chest.block);
                                     ItemStack[] items = inv.getContents();
                                     ItemStack is;

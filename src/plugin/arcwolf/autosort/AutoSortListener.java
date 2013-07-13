@@ -202,7 +202,7 @@ public class AutoSortListener implements Listener {
                 }
                 plugin.util.updateChestTask(player, settings);
             }
-            else if (clickedId <= settings.withdrawInventory.getSize()) { // If player removes item from chest resort chest
+            else if (clickedId <= settings.withdrawInventory.getSize() && clickedId != -999) { // If player removes item from chest resort chest  
                 plugin.util.updateChestTask(player, settings);
             }
         }
@@ -272,8 +272,13 @@ public class AutoSortListener implements Listener {
         Player player = event.getPlayer();
 
         SortNetwork sortNetwork = null;
+
         if (lines[0].startsWith("#") || lines[0].startsWith("*")) {
             netName = lines[0].substring(1);
+            if (netName.equals("")) {
+                player.sendMessage(ChatColor.RED + "You can't create a network without a name!");
+                return;
+            }
             sortNetwork = plugin.findNetwork(player.getName(), netName);
             if (sortNetwork == null && plugin.playerHasPermission(player, "autosort.create"))
                 sortNetwork = createNetwork(player, netName);
@@ -282,7 +287,6 @@ public class AutoSortListener implements Listener {
                 return;
             }
         }
-        if (netName.equals("")) return;
 
         if (event.getBlock().getType().equals(Material.WALL_SIGN)) {
             Block signBlock = event.getBlock();
@@ -294,8 +298,8 @@ public class AutoSortListener implements Listener {
                         storageBlock = getDirection(option.split(":")[1], signBlock);
                     }
                     if (plugin.util.isValidWithdrawBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
-                        if (!AutoSort.worldRestrict || sortNetwork.world.equalsIgnoreCase(signBlock.getWorld().getName().toLowerCase())) {
-                            int prox = getProximity(netName);
+                        if (!plugin.worldRestrict || sortNetwork.world.equalsIgnoreCase(signBlock.getWorld().getName().toLowerCase())) {
+                            int prox = getProximity(player.getName(), netName);
                             Location origin = getOrigin(sortNetwork.sortChests);
                             Location here = storageBlock.getLocation();
                             if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerHasPermission(player, "autosort.ignoreproximity")) {
@@ -311,11 +315,13 @@ public class AutoSortListener implements Listener {
                             else {
                                 player.sendMessage(ChatColor.RED + "You can only place chests within " + prox + " blocks of the original chest!");
                                 event.setCancelled(true);
+                                return;
                             }
                         }
                         else {
                             player.sendMessage(ChatColor.RED + "You can't add to a network unless you are in the same world as it!");
                             event.setCancelled(true);
+                            return;
                         }
                     }
                     else {
@@ -343,9 +349,10 @@ public class AutoSortListener implements Listener {
                         if (opt.startsWith("P:")) {
                             String pStr = opt.split(":")[1];
                             priority = getPriority(pStr);
-                            if (priority == -1) {
+                            if (priority < 1) {
                                 event.setCancelled(true);
                                 player.sendMessage(ChatColor.RED + "Invalid Priority: " + pStr);
+                                return;
                             }
                         }
                         else if (opt.startsWith("D:")) {
@@ -366,8 +373,8 @@ public class AutoSortListener implements Listener {
 
                     if (mat.equalsIgnoreCase("")) { //TODO Deposit Chest
                         if (plugin.util.isValidDepositBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
-                            if (!AutoSort.worldRestrict || sortNetwork.world.equalsIgnoreCase(signBlock.getWorld().getName().toLowerCase())) {
-                                int prox = getProximity(netName);
+                            if (!plugin.worldRestrict || sortNetwork.world.equalsIgnoreCase(signBlock.getWorld().getName().toLowerCase())) {
+                                int prox = getProximity(player.getName(), netName);
                                 Location origin = getOrigin(sortNetwork.sortChests);
                                 Location here = storageBlock.getLocation();
                                 if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerHasPermission(player, "autosort.ignoreproximity")) {
@@ -383,11 +390,13 @@ public class AutoSortListener implements Listener {
                                 else {
                                     player.sendMessage(ChatColor.RED + "You can only place chests within " + prox + " blocks of the original chest!");
                                     event.setCancelled(true);
+                                    return;
                                 }
                             }
                             else {
                                 player.sendMessage(ChatColor.RED + "You can't add to a network unless you are in the same world as it!");
                                 event.setCancelled(true);
+                                return;
                             }
                         }
                         else {
@@ -413,8 +422,8 @@ public class AutoSortListener implements Listener {
                             boolean dd = !mat.contains(":");
 
                             if (plugin.playerHasPermission(player, "autosort.override") || sortNetwork.owner.equalsIgnoreCase(player.getName())) {
-                                if (!AutoSort.worldRestrict || sortNetwork.world.equalsIgnoreCase(signBlock.getWorld().getName().toLowerCase())) {
-                                    int prox = getProximity(netName);
+                                if (!plugin.worldRestrict || sortNetwork.world.equalsIgnoreCase(signBlock.getWorld().getName().toLowerCase())) {
+                                    int prox = getProximity(player.getName(), netName);
                                     Location origin = getOrigin(sortNetwork.sortChests);
                                     Location here = storageBlock.getLocation();
                                     if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerHasPermission(player, "autosort.ignoreproximity")) {
@@ -428,16 +437,19 @@ public class AutoSortListener implements Listener {
                                     else {
                                         player.sendMessage(ChatColor.RED + "You can only place chests within " + prox + " blocks of the original chest!");
                                         event.setCancelled(true);
+                                        return;
                                     }
                                 }
                                 else {
                                     player.sendMessage(ChatColor.RED + "You can't add to a network unless you are in the same world as it!");
                                     event.setCancelled(true);
+                                    return;
                                 }
                             }
                             else {
                                 player.sendMessage(ChatColor.RED + "You don't have permission to use that network!");
                                 event.setCancelled(true);
+                                return;
                             }
                         }
                         else {
@@ -449,6 +461,7 @@ public class AutoSortListener implements Listener {
                 else {
                     event.setCancelled(true);
                     event.getPlayer().sendMessage(ChatColor.RED + "You do not have permission to create AutoSort chests.");
+                    return;
                 }
             }
         }
@@ -456,8 +469,8 @@ public class AutoSortListener implements Listener {
             if (plugin.playerHasPermission(player, "autosort.use")) {
                 if (lines[0].startsWith("*")) {
                     Block sign = event.getBlock();
-                    if (!AutoSort.worldRestrict || sortNetwork.world.equalsIgnoreCase(sign.getWorld().getName().toLowerCase())) {
-                        int prox = getProximity(netName);
+                    if (!plugin.worldRestrict || sortNetwork.world.equalsIgnoreCase(sign.getWorld().getName().toLowerCase())) {
+                        int prox = getProximity(player.getName(), netName);
                         Location origin = getOrigin(sortNetwork.sortChests);
                         Location here = sign.getLocation();
                         if (prox == 0 || (origin != null && origin.distance(here) <= prox) || plugin.playerHasPermission(player, "autosort.ignoreproximity")) {
@@ -471,11 +484,13 @@ public class AutoSortListener implements Listener {
                         else {
                             player.sendMessage(ChatColor.RED + "You can only place drop signs within " + prox + " blocks of the original chest!");
                             event.setCancelled(true);
+                            return;
                         }
                     }
                     else {
                         player.sendMessage(ChatColor.RED + "You can't add to a network unless you are in the same world as it!");
                         event.setCancelled(true);
+                        return;
                     }
                 }
             }
@@ -853,6 +868,38 @@ public class AutoSortListener implements Listener {
                         break;
                 }
             }
+            if (dir.equalsIgnoreCase("F")) {
+                switch (signData) {
+                    case 2:
+                        x--;
+                        break;
+                    case 3:
+                        z--;
+                        break;
+                    case 4:
+                        x++;
+                        break;
+                    case 5:
+                        x--;
+                        break;
+                }
+            }
+            if (dir.equalsIgnoreCase("B")) {
+                switch (signData) {
+                    case 2:
+                        x++;
+                        break;
+                    case 3:
+                        z++;
+                        break;
+                    case 4:
+                        x--;
+                        break;
+                    case 5:
+                        x++;
+                        break;
+                }
+            }
             if (dir.equalsIgnoreCase("U")) {
                 y++;
             }
@@ -945,9 +992,9 @@ public class AutoSortListener implements Listener {
             return false;
     }
 
-    private int getProximity(String netName) {
-        if (AutoSort.proximities.containsKey(netName)) {
-            return AutoSort.proximities.get(netName);
+    private int getProximity(String owner, String netName) {
+        if (AutoSort.proximities.containsKey(owner)) {
+            return AutoSort.proximities.get(owner).getDistance();
         }
         else {
             return AutoSort.defaultProx;

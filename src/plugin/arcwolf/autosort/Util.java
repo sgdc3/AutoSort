@@ -106,24 +106,25 @@ public class Util {
 
     public static InventoryHolder getInventoryHolder(Block block) {
         InventoryHolder invHolder = null;
-        if (block.getChunk().load()) {
-            BlockState state = block.getState();
-            if (state == null) {
-                return null;
-            }
-            else if (state instanceof Dispenser && block.getType().equals(Material.DISPENSER)) {
-                invHolder = (Dispenser) state;
-            }
-            else if (state instanceof Chest && (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST))) {
-                invHolder = (Chest) state;
-            }
-            else if (state instanceof Dropper && block.getType().equals(Material.DROPPER)) {
-                invHolder = (Dropper) state;
-            }
-            else if (state instanceof Hopper && block.getType().equals(Material.HOPPER)) {
-                invHolder = (Hopper) state;
-            }
+        if (!block.getChunk().isLoaded()) block.getChunk().load();
+        if (!block.getChunk().isLoaded()) return null;
+        BlockState state = block.getState();
+        if (state == null) {
+            return null;
         }
+        else if (state instanceof Dispenser && block.getType().equals(Material.DISPENSER)) {
+            invHolder = (Dispenser) state;
+        }
+        else if (state instanceof Chest && (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST))) {
+            invHolder = (Chest) state;
+        }
+        else if (state instanceof Dropper && block.getType().equals(Material.DROPPER)) {
+            invHolder = (Dropper) state;
+        }
+        else if (state instanceof Hopper && block.getType().equals(Material.HOPPER)) {
+            invHolder = (Hopper) state;
+        }
+
         return invHolder;
     }
 
@@ -173,6 +174,7 @@ public class Util {
         Map<Integer, ItemStack> couldntFit = null;
         Inventory networkInv;
         for(SortChest chest : settings.sortNetwork.sortChests) {
+            if (chest.signText.contains("LAVAFURNACE")) continue; // TODO Lavafurnace block
             if (!chest.block.getChunk().isLoaded())
                 chest.block.getChunk().load();
             networkInv = getInventory(chest.block);
@@ -270,7 +272,7 @@ public class Util {
 
     public boolean updateInventoryList(Player player, CustomPlayer settings) {
         for(SortChest chest : settings.sortNetwork.sortChests) {
-            if (chest.signText.contains("LAVAFURNACE")) continue;
+            if (chest.signText.contains("LAVAFURNACE")) continue; //TODO lavafurnace block
             Inventory inv = Util.getInventoryHolder(chest.block).getInventory();
             if (inv == null) continue;
             for(ItemStack item : inv) {
