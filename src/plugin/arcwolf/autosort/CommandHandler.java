@@ -340,7 +340,7 @@ public class CommandHandler {
                     sender.sendMessage(ChatColor.RED + "Could not find network " + ChatColor.RESET + args[1] + ChatColor.RED + " owned by " + ChatColor.RESET + args[0]);
                     return true;
                 }
-                if ((network.owner.equals(player.getName()) || network.members.contains(player.getName())) || plugin.playerHasPermission(player, "autosort.override")) {
+                if ((network.owner.equals(player.getName()) || network.members.contains(player.getName()) || network.netName.equalsIgnoreCase("$Public")) || plugin.playerHasPermission(player, "autosort.override")) {
                     return doCommandWithdraw(player, network, owner, netName);
                 }
                 else {
