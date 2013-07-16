@@ -324,7 +324,7 @@ public class CommandHandler {
                 network = plugin.findNetwork(owner, netName);
                 if (network == null) {
                     sender.sendMessage(ChatColor.RED + "Could not find network " + ChatColor.RESET + args[0] + ChatColor.RED + " owned by " + ChatColor.RESET + owner);
-                    sender.sendMessage("Try " + ChatColor.YELLOW + " /aswithdraw <ownerName> " + args[0]);
+                    sender.sendMessage("Try " + ChatColor.YELLOW + " /listasmembers <ownerName> " + args[0]);
                     return true;
                 }
                 doList = true;
