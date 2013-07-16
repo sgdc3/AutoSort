@@ -311,6 +311,40 @@ public class CommandHandler {
             }
             return true;
         }
+        else if (commandName.equalsIgnoreCase("listasmembers") && plugin.playerHasPermission(player, "autosort.listasmembers")) {
+            boolean doList = false;
+            SortNetwork network = null;
+            if (args.length == 1) { // /listasmembers <netName>
+                String owner = ((Player) sender).getName();
+                String netName = args[0];
+                if (netName.equalsIgnoreCase("$Public")) {
+                    sender.sendMessage(ChatColor.YELLOW + "Public networks allow everyone.");
+                    return true;
+                }
+                network = plugin.findNetwork(owner, netName);
+                if (network == null) {
+                    sender.sendMessage(ChatColor.RED + "Could not find network " + ChatColor.RESET + args[0] + ChatColor.RED + " owned by " + ChatColor.RESET + owner);
+                    sender.sendMessage("Try " + ChatColor.YELLOW + " /aswithdraw <ownerName> " + args[0]);
+                    return true;
+                }
+                doList = true;
+            }
+            else if (args.length == 2) { // /listasmembers <ownerName> <netName>
+                String owner = args[0];
+                String netName = args[1];
+                if (netName.equalsIgnoreCase("$Public")) {
+                    sender.sendMessage(ChatColor.YELLOW + "Public networks allow everyone.");
+                    return true;
+                }
+                network = plugin.findNetwork(owner, netName);
+                if (network == null) {
+                    sender.sendMessage(ChatColor.RED + "Could not find network " + ChatColor.RESET + args[1] + ChatColor.RED + " owned by " + ChatColor.RESET + args[0]);
+                    return true;
+                }
+                doList = true;
+            }
+            if (doList) { return listMembers(sender, network); }
+        }
         else if (commandName.equalsIgnoreCase("asremnet") && plugin.playerHasPermission(player, "autosort.remnet")) {
             // /asremnet <OwnerName> <networkName>
             String ownerName = args[0];
@@ -528,6 +562,25 @@ public class CommandHandler {
                 sender.sendMessage(msg);
             }
             return true;
+        }
+        else if (commandName.equalsIgnoreCase("listasmembers")) {
+            boolean doList = false;
+            SortNetwork network = null;
+            if (args.length == 2) { // /listasmembers <ownerName> <netName>
+                String owner = args[0];
+                String netName = args[1];
+                if (netName.equalsIgnoreCase("$Public")) {
+                    sender.sendMessage(ChatColor.YELLOW + "Public networks allow everyone.");
+                    return true;
+                }
+                network = plugin.findNetwork(owner, netName);
+                if (network == null) {
+                    sender.sendMessage(ChatColor.RED + "Could not find network " + ChatColor.RESET + args[1] + ChatColor.RED + " owned by " + ChatColor.RESET + args[0]);
+                    return true;
+                }
+                doList = true;
+            }
+            if (doList) { return listMembers(sender, network); }
         }
         else if (commandName.equalsIgnoreCase("asremnet")) {
             // /asremnet <OwnerName> <networkName>
@@ -789,6 +842,36 @@ public class CommandHandler {
             plugin.asListener.chestLock.remove(player.getName());
             settings.clearPlayer();
         }
+        return true;
+    }
+
+    private boolean listMembers(CommandSender sender, SortNetwork network) {
+        if (network.members.size() == 0) {
+            sender.sendMessage(ChatColor.RED + "There are no members of network " + ChatColor.RESET + network.netName + ChatColor.RED + " owned by " + ChatColor.RESET + network.owner);
+            return true;
+        }
+        StringBuilder sb = new StringBuilder();
+        String name, netName = network.netName;
+        sender.sendMessage("Network: " + ChatColor.GOLD + netName);
+        sb.append("Members: ");
+        sb.append(ChatColor.AQUA);
+        for(int i = 0; i < network.members.size(); i++) {
+            name = network.members.get(i);
+            if ((sb.length() + name.length()) > 80) {
+                sender.sendMessage(sb.toString());
+                sb = new StringBuilder();
+                sb.append(ChatColor.AQUA);
+            }
+            if (i < network.members.size() - 1) {
+                sb.append(name);
+                sb.append(ChatColor.RESET);
+                sb.append(", ");
+                sb.append(ChatColor.AQUA);
+            }
+            else
+                sb.append(name);
+        }
+        sender.sendMessage(sb.toString());
         return true;
     }
 }

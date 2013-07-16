@@ -40,6 +40,10 @@ commands:
     description: List all AutoSort material groups defined on this server
     permission: autosort.listasgroups
     usage: /listasgroups
+  listasmembers:
+    description: List all Members of a Autosort Network
+    permission: autosort.listasmembers
+    usage: /listasmembers [Owner] [netName]
   remfromnet:
     description: Removes players from a AutoSort network
     permission: autosort.remfromnet
@@ -72,6 +76,7 @@ permissions:
       autosort.listasgroups: true
       autosort.remnet: true
       autosort.create.public: true
+      autosort.listasmembers: true
       
   autosort.common: 
     children:
