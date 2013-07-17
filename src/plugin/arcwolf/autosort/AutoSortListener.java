@@ -285,6 +285,10 @@ public class AutoSortListener implements Listener {
                 event.setCancelled(true);
                 return;
             }
+            if (netName.equalsIgnoreCase("$Public")) {
+                netName = netName.toUpperCase();
+                event.setLine(0, lines[0].toUpperCase());
+            }
             sortNetwork = plugin.findNetwork(player.getName(), netName);
             if (sortNetwork == null && plugin.playerHasPermission(player, "autosort.create"))
                 sortNetwork = createNetwork(player, netName);

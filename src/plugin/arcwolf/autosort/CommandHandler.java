@@ -35,6 +35,7 @@ public class CommandHandler {
         Player player = (Player) sender;
         if (commandName.equalsIgnoreCase("autosort") && plugin.playerHasPermission(player, "autosort.use")) {
             if (args.length == 1) {
+                if (args[0].equalsIgnoreCase("$Public")) args[0] = args[0].toUpperCase();
                 SortNetwork network = plugin.findNetwork(player.getName(), args[0]);
                 if (network == null) {
                     sender.sendMessage(ChatColor.RED + "The network " + ChatColor.YELLOW + "'" + args[0] + "'" + ChatColor.RED + " could not be found.");
@@ -44,6 +45,7 @@ public class CommandHandler {
                 return sortPlayerInventory(9, sender, player.getName(), args[0], network);
             }
             else if (args.length == 2) {
+                if (args[1].equalsIgnoreCase("$Public")) args[1] = args[1].toUpperCase();
                 SortNetwork network = plugin.findNetwork(args[0], args[1]);
                 if (network == null) {
                     sender.sendMessage(ChatColor.RED + "The network " + ChatColor.YELLOW + "'" + args[1] + "'" + ChatColor.RED + " could not be found.");
@@ -60,6 +62,7 @@ public class CommandHandler {
         }
         else if (commandName.equalsIgnoreCase("autosortall") && plugin.playerHasPermission(player, "autosort.use")) {
             if (args.length == 1) {
+                if (args[0].equalsIgnoreCase("$Public")) args[0] = args[0].toUpperCase();
                 SortNetwork network = plugin.findNetwork(player.getName(), args[0]);
                 if (network == null) {
                     sender.sendMessage(ChatColor.RED + "The network " + ChatColor.YELLOW + "'" + args[0] + "'" + ChatColor.RED + " could not be found.");
@@ -69,6 +72,7 @@ public class CommandHandler {
                 return sortPlayerInventory(0, sender, player.getName(), args[0], network);
             }
             else if (args.length == 2) {
+                if (args[1].equalsIgnoreCase("$Public")) args[1] = args[1].toUpperCase();
                 SortNetwork network = plugin.findNetwork(args[0], args[1]);
                 if (network == null) {
                     sender.sendMessage(ChatColor.RED + "The network " + ChatColor.YELLOW + "'" + args[1] + "'" + ChatColor.RED + " could not be found.");
@@ -358,6 +362,7 @@ public class CommandHandler {
             if (args.length == 1) { // /aswithdraw <netName>
                 String owner = ((Player) sender).getName();
                 String netName = args[0];
+                if (netName.equalsIgnoreCase("$Public")) netName = netName.toUpperCase();
                 SortNetwork network = plugin.findNetwork(owner, netName);
                 if (network == null) {
                     sender.sendMessage(ChatColor.RED + "Could not find network " + ChatColor.RESET + args[0] + ChatColor.RED + " owned by " + ChatColor.RESET + owner);
