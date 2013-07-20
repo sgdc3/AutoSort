@@ -99,18 +99,8 @@ public class AutoSort extends JavaPlugin {
         asListener = new AutoSortListener(this);
         commandHandler = new CommandHandler(this);
 
-        debug = getConfig().getInt("debug", 0);
-        worldRestrict = getConfig().getBoolean("worldRestrict", false);
-        emptiesFirst = getConfig().getBoolean("fill-emptier-first", false);
-        defaultProx = getConfig().getInt("proximity", 0);
-        ConfigurationSection proxSec = getConfig().getConfigurationSection("proximity-exceptions");
-        for(String owner : proxSec.getKeys(false)) {
-            ConfigurationSection username = proxSec.getConfigurationSection(owner);
-            for(String network : username.getKeys(false)) {
-                proximities.put(owner, new ProxExcep(owner, network, username.getInt(network)));
-            }
-        }
-        
+        loadConfig();
+
         getPermissionsPlugin();
         loadCustomGroups();
         v4Loaded = loadVersion4Save();
@@ -283,7 +273,21 @@ public class AutoSort extends JavaPlugin {
         }
     }
 
-    private void loadCustomGroups() {
+    public void loadConfig() {
+        debug = getConfig().getInt("debug", 0);
+        worldRestrict = getConfig().getBoolean("worldRestrict", false);
+        emptiesFirst = getConfig().getBoolean("fill-emptier-first", false);
+        defaultProx = getConfig().getInt("proximity", 0);
+        ConfigurationSection proxSec = getConfig().getConfigurationSection("proximity-exceptions");
+        for(String owner : proxSec.getKeys(false)) {
+            ConfigurationSection username = proxSec.getConfigurationSection(owner);
+            for(String network : username.getKeys(false)) {
+                proximities.put(owner, new ProxExcep(owner, network, username.getInt(network)));
+            }
+        }
+    }
+    
+    public void loadCustomGroups() {
         ConfigurationSection groupSec = getConfig().getConfigurationSection("customGroups");
         Map<String, Object> groups = groupSec.getValues(false);
         for(String key : groups.keySet()) {
@@ -404,7 +408,7 @@ public class AutoSort extends JavaPlugin {
         return false;
     }
 
-    private void loadVersion5Save() {
+    public void loadVersion5Save() {
         int version = getCustomConfig().getInt("version", 5);
         if (version == 5) {
             ConfigurationSection netsSec = getCustomConfig().getConfigurationSection("Owners");

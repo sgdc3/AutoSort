@@ -88,12 +88,8 @@ public class CommandHandler {
             }
         }
         else if (commandName.equalsIgnoreCase("asreload") && plugin.playerHasPermission(player, "autosort.reload")) {
-            if (args.length == 0) {
-                plugin.getPluginLoader().disablePlugin(plugin);
-                plugin.getPluginLoader().enablePlugin(plugin);
-                sender.sendMessage(ChatColor.GREEN + "AutoSort reloaded.");
-                return true;
-            }
+            reload(sender);
+            return true;
         }
         else if (commandName.equalsIgnoreCase("addasgroup") && plugin.playerHasPermission(player, "autosort.addasgroup")) {
             if (args.length > 1) {
@@ -391,13 +387,36 @@ public class CommandHandler {
         return false;
     }
 
+    private void reload(CommandSender sender) {
+        try {
+            sender.sendMessage(ChatColor.AQUA + "AutoSort reloading...");
+            CustomPlayer.playerSettings.clear();
+            plugin.items.clear();
+            plugin.stillItems.clear();
+            plugin.allNetworkBlocks.clear();
+            plugin.networks.clear();
+            AutoSort.customMatGroups.clear();
+            AutoSort.proximities.clear();
+            sender.sendMessage(ChatColor.YELLOW + "AutoSort variables cleared.");
+
+            plugin.loadVersion5Save();
+            sender.sendMessage(ChatColor.YELLOW + "AutoSort database reloaded.");
+            plugin.loadConfig();
+            sender.sendMessage(ChatColor.YELLOW + "AutoSort config reloaded.");
+            plugin.loadCustomGroups();
+            sender.sendMessage(ChatColor.YELLOW + "AutoSort custom groups reloaded.");
+            sender.sendMessage(ChatColor.GREEN + "AutoSort reload finished successfully.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            sender.sendMessage(ChatColor.RED + "AutoSort reload failed.");
+        }
+    }
+
     public boolean inConsole(CommandSender sender, Command cmd, String commandLabel, String[] args) {
         String commandName = cmd.getName();
         if (commandName.equalsIgnoreCase("asreload")) {
             if (args.length == 0) {
-                plugin.getPluginLoader().disablePlugin(plugin);
-                plugin.getPluginLoader().enablePlugin(plugin);
-                sender.sendMessage(ChatColor.GREEN + "AutoSort reloaded.");
+                reload(sender);
                 return true;
             }
         }
