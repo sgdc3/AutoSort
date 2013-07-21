@@ -35,7 +35,7 @@ public class CommandHandler {
         Player player = (Player) sender;
         if (commandName.equalsIgnoreCase("autosort")) {
             if (!plugin.playerHasPermission(player, "autosort.use")) {
-                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                sender.sendMessage(ChatColor.RED + "Sorry you do not have permission for " + ChatColor.YELLOW + commandName + ChatColor.RED + " command.");
                 return true;
             }
             if (args.length == 1) {
@@ -66,7 +66,7 @@ public class CommandHandler {
         }
         else if (commandName.equalsIgnoreCase("autosortall")) {
             if (!plugin.playerHasPermission(player, "autosort.use")) {
-                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                sender.sendMessage(ChatColor.RED + "Sorry you do not have permission for " + ChatColor.YELLOW + commandName + ChatColor.RED + " command.");
                 return true;
             }
             if (args.length == 1) {
@@ -97,7 +97,7 @@ public class CommandHandler {
         }
         else if (commandName.equalsIgnoreCase("asreload")) {
             if (!plugin.playerHasPermission(player, "autosort.reload")) {
-                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                sender.sendMessage(ChatColor.RED + "Sorry you do not have permission for " + ChatColor.YELLOW + commandName + ChatColor.RED + " command.");
                 return true;
             }
             reload(sender);
@@ -105,7 +105,7 @@ public class CommandHandler {
         }
         else if (commandName.equalsIgnoreCase("addasgroup")) {
             if (!plugin.playerHasPermission(player, "autosort.addasgroup")) {
-                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                sender.sendMessage(ChatColor.RED + "Sorry you do not have permission for " + ChatColor.YELLOW + commandName + ChatColor.RED + " command.");
                 return true;
             }
             if (args.length > 1) {
@@ -132,7 +132,7 @@ public class CommandHandler {
         }
         else if (commandName.equalsIgnoreCase("modasgroup")) {
             if (!plugin.playerHasPermission(player, "autosort.modasgroup")) {
-                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                sender.sendMessage(ChatColor.RED + "Sorry you do not have permission for " + ChatColor.YELLOW + commandName + ChatColor.RED + " command.");
                 return true;
             }
             if (args.length > 1) {
@@ -169,7 +169,7 @@ public class CommandHandler {
         }
         else if (commandName.equalsIgnoreCase("delasgroup")) {
             if (!plugin.playerHasPermission(player, "autosort.delasgroup")) {
-                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                sender.sendMessage(ChatColor.RED + "Sorry you do not have permission for " + ChatColor.YELLOW + commandName + ChatColor.RED + " command.");
                 return true;
             }
             if (args.length == 1) {
@@ -189,7 +189,7 @@ public class CommandHandler {
         }
         else if (commandName.equalsIgnoreCase("ascleanup")) {
             if (!plugin.playerHasPermission(player, "autosort.ascleanup")) {
-                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                sender.sendMessage(ChatColor.RED + "Sorry you do not have permission for " + ChatColor.YELLOW + commandName + ChatColor.RED + " command.");
                 return true;
             }
             sender.sendMessage(ChatColor.BLUE + "Cleaning up all AutoSort networks...");
@@ -202,7 +202,7 @@ public class CommandHandler {
         }
         else if (commandName.equalsIgnoreCase("addtonet")) {
             if (!plugin.playerHasPermission(player, "autosort.addtonet")) {
-                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                sender.sendMessage(ChatColor.RED + "Sorry you do not have permission for " + ChatColor.YELLOW + commandName + ChatColor.RED + " command.");
                 return true;
             }
             if (args.length > 1) {
@@ -263,7 +263,7 @@ public class CommandHandler {
         }
         else if (commandName.equalsIgnoreCase("remfromnet")) {
             if (!plugin.playerHasPermission(player, "autosort.remfromnet")) {
-                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                sender.sendMessage(ChatColor.RED + "Sorry you do not have permission for " + ChatColor.YELLOW + commandName + ChatColor.RED + " command.");
                 return true;
             }
             if (args.length > 1) {
@@ -324,7 +324,7 @@ public class CommandHandler {
         }
         else if (commandName.equalsIgnoreCase("listasgroups")) {
             if (!plugin.playerHasPermission(player, "autosort.listasgroups")) {
-                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                sender.sendMessage(ChatColor.RED + "Sorry you do not have permission for " + ChatColor.YELLOW + commandName + ChatColor.RED + " command.");
                 return true;
             }
             sender.sendMessage(ChatColor.GOLD + "Custom AutoSort material groups:");
@@ -353,7 +353,7 @@ public class CommandHandler {
         }
         else if (commandName.equalsIgnoreCase("listasmembers")) {
             if (!plugin.playerHasPermission(player, "autosort.listasmembers")) {
-                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                sender.sendMessage(ChatColor.RED + "Sorry you do not have permission for " + ChatColor.YELLOW + commandName + ChatColor.RED + " command.");
                 return true;
             }
             boolean doList = false;
@@ -391,7 +391,7 @@ public class CommandHandler {
         }
         else if (commandName.equalsIgnoreCase("asremnet")) {
             if (!plugin.playerHasPermission(player, "autosort.remnet")) {
-                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                sender.sendMessage(ChatColor.RED + "Sorry you do not have permission for " + ChatColor.YELLOW + commandName + ChatColor.RED + " command.");
                 return true;
             }
             // /asremnet <OwnerName> <networkName>
@@ -404,7 +404,7 @@ public class CommandHandler {
         }
         else if (commandName.equals("aswithdraw")) {
             if (!plugin.playerHasPermission(player, "autosort.use.withdrawcommand")) {
-                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                sender.sendMessage(ChatColor.RED + "Sorry you do not have permission for " + ChatColor.YELLOW + commandName + ChatColor.RED + " command.");
                 return true;
             }
             if (args.length == 1) { // /aswithdraw <netName>
