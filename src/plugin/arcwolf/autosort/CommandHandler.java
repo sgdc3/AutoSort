@@ -33,7 +33,11 @@ public class CommandHandler {
     public boolean inGame(CommandSender sender, Command cmd, String commandLabel, String[] args) {
         String commandName = cmd.getName();
         Player player = (Player) sender;
-        if (commandName.equalsIgnoreCase("autosort") && plugin.playerHasPermission(player, "autosort.use")) {
+        if (commandName.equalsIgnoreCase("autosort")) {
+            if (!plugin.playerHasPermission(player, "autosort.use")) {
+                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                return true;
+            }
             if (args.length == 1) {
                 if (args[0].equalsIgnoreCase("$Public")) args[0] = args[0].toUpperCase();
                 SortNetwork network = plugin.findNetwork(player.getName(), args[0]);
@@ -60,7 +64,11 @@ public class CommandHandler {
                 }
             }
         }
-        else if (commandName.equalsIgnoreCase("autosortall") && plugin.playerHasPermission(player, "autosort.use")) {
+        else if (commandName.equalsIgnoreCase("autosortall")) {
+            if (!plugin.playerHasPermission(player, "autosort.use")) {
+                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                return true;
+            }
             if (args.length == 1) {
                 if (args[0].equalsIgnoreCase("$Public")) args[0] = args[0].toUpperCase();
                 SortNetwork network = plugin.findNetwork(player.getName(), args[0]);
@@ -87,11 +95,19 @@ public class CommandHandler {
                 }
             }
         }
-        else if (commandName.equalsIgnoreCase("asreload") && plugin.playerHasPermission(player, "autosort.reload")) {
+        else if (commandName.equalsIgnoreCase("asreload")) {
+            if (!plugin.playerHasPermission(player, "autosort.reload")) {
+                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                return true;
+            }
             reload(sender);
             return true;
         }
-        else if (commandName.equalsIgnoreCase("addasgroup") && plugin.playerHasPermission(player, "autosort.addasgroup")) {
+        else if (commandName.equalsIgnoreCase("addasgroup")) {
+            if (!plugin.playerHasPermission(player, "autosort.addasgroup")) {
+                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                return true;
+            }
             if (args.length > 1) {
                 String groupName = args[0].toUpperCase();
                 List<ItemStack> matList = new ArrayList<ItemStack>();
@@ -114,7 +130,11 @@ public class CommandHandler {
                 return true;
             }
         }
-        else if (commandName.equalsIgnoreCase("modasgroup") && plugin.playerHasPermission(player, "autosort.modasgroup")) {
+        else if (commandName.equalsIgnoreCase("modasgroup")) {
+            if (!plugin.playerHasPermission(player, "autosort.modasgroup")) {
+                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                return true;
+            }
             if (args.length > 1) {
                 String groupName = args[0].toUpperCase();
                 if (AutoSort.customMatGroups.containsKey(groupName)) {
@@ -147,7 +167,11 @@ public class CommandHandler {
                 return true;
             }
         }
-        else if (commandName.equalsIgnoreCase("delasgroup") && plugin.playerHasPermission(player, "autosort.delasgroup")) {
+        else if (commandName.equalsIgnoreCase("delasgroup")) {
+            if (!plugin.playerHasPermission(player, "autosort.delasgroup")) {
+                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                return true;
+            }
             if (args.length == 1) {
                 String groupName = args[0].toUpperCase();
                 if (AutoSort.customMatGroups.containsKey(groupName)) {
@@ -163,7 +187,11 @@ public class CommandHandler {
                 return true;
             }
         }
-        else if (commandName.equalsIgnoreCase("ascleanup") && plugin.playerHasPermission(player, "autosort.ascleanup")) {
+        else if (commandName.equalsIgnoreCase("ascleanup")) {
+            if (!plugin.playerHasPermission(player, "autosort.ascleanup")) {
+                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                return true;
+            }
             sender.sendMessage(ChatColor.BLUE + "Cleaning up all AutoSort networks...");
             AutoSort.LOGGER.info("AutoSort: Command Cleanup Process Started.");
             if (!plugin.cleanupNetwork()) AutoSort.LOGGER.info("AutoSort: All networks are clean.");
@@ -172,7 +200,11 @@ public class CommandHandler {
             sender.sendMessage(ChatColor.BLUE + "Done.");
             return true;
         }
-        else if (commandName.equalsIgnoreCase("addtonet") && plugin.playerHasPermission(player, "autosort.addtonet")) {
+        else if (commandName.equalsIgnoreCase("addtonet")) {
+            if (!plugin.playerHasPermission(player, "autosort.addtonet")) {
+                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                return true;
+            }
             if (args.length > 1) {
                 String netName = args[0];
                 if (netName.equalsIgnoreCase("$Public")) {
@@ -229,7 +261,11 @@ public class CommandHandler {
                 sender.sendMessage(ChatColor.RED + "Too few arguments! Usage: /addtonet [netName] [players...]");
             }
         }
-        else if (commandName.equalsIgnoreCase("remfromnet") && plugin.playerHasPermission(player, "autosort.remfromnet")) {
+        else if (commandName.equalsIgnoreCase("remfromnet")) {
+            if (!plugin.playerHasPermission(player, "autosort.remfromnet")) {
+                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                return true;
+            }
             if (args.length > 1) {
                 String netName = args[0];
                 if (netName.equalsIgnoreCase("$Public")) {
@@ -286,7 +322,11 @@ public class CommandHandler {
                 sender.sendMessage(ChatColor.RED + "Too few arguments! Usage: /remfromnet [netName] [players...]");
             }
         }
-        else if (commandName.equalsIgnoreCase("listasgroups") && plugin.playerHasPermission(player, "autosort.listasgroups")) {
+        else if (commandName.equalsIgnoreCase("listasgroups")) {
+            if (!plugin.playerHasPermission(player, "autosort.listasgroups")) {
+                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                return true;
+            }
             sender.sendMessage(ChatColor.GOLD + "Custom AutoSort material groups:");
             List<ItemStack> items;
             StringBuilder list;
@@ -311,7 +351,11 @@ public class CommandHandler {
             }
             return true;
         }
-        else if (commandName.equalsIgnoreCase("listasmembers") && plugin.playerHasPermission(player, "autosort.listasmembers")) {
+        else if (commandName.equalsIgnoreCase("listasmembers")) {
+            if (!plugin.playerHasPermission(player, "autosort.listasmembers")) {
+                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                return true;
+            }
             boolean doList = false;
             SortNetwork network = null;
             if (args.length == 1) { // /listasmembers <netName>
@@ -345,7 +389,11 @@ public class CommandHandler {
             }
             if (doList) { return listMembers(sender, network); }
         }
-        else if (commandName.equalsIgnoreCase("asremnet") && plugin.playerHasPermission(player, "autosort.remnet")) {
+        else if (commandName.equalsIgnoreCase("asremnet")) {
+            if (!plugin.playerHasPermission(player, "autosort.remnet")) {
+                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                return true;
+            }
             // /asremnet <OwnerName> <networkName>
             String ownerName = args[0];
             String netName = args[1];
@@ -354,7 +402,11 @@ public class CommandHandler {
             plugin.saveVersion5Network();
             return true;
         }
-        else if (commandName.equals("aswithdraw") && plugin.playerHasPermission(player, "autosort.use.withdrawcommand")) {
+        else if (commandName.equals("aswithdraw")) {
+            if (!plugin.playerHasPermission(player, "autosort.use.withdrawcommand")) {
+                sender.sendMessage(ChatColor.RED + "Sorry you are not a member of the " + ChatColor.YELLOW + args[1] + ChatColor.WHITE + " network.");
+                return true;
+            }
             if (args.length == 1) { // /aswithdraw <netName>
                 String owner = ((Player) sender).getName();
                 String netName = args[0];
