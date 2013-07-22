@@ -789,12 +789,14 @@ public class CommandHandler {
             if (itemData == 1) return "GRASS";
             if (itemData == 2) return "FERN";
         }
-        if (itemId == 35 || itemId == 159) {
+        if (itemId == 35 || itemId == 159 || itemId == 171) {
             String type = "";
             if (itemId == 35)
                 type = "_WOOL";
-            else
+            else if (itemId == 159)
                 type = "_CLAY";
+            else
+                type = "_CARPET";
             if (itemData == 0) return item.getType().name();
             if (itemData == 1) return "ORANGE" + type;
             if (itemData == 2) return "MAGENTA" + type;
