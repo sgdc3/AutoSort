@@ -789,23 +789,28 @@ public class CommandHandler {
             if (itemData == 1) return "GRASS";
             if (itemData == 2) return "FERN";
         }
-        if (itemId == 35) {
+        if (itemId == 35 || itemId == 159) {
+            String type = "";
+            if (itemId == 35)
+                type = "_WOOL";
+            else
+                type = "_CLAY";
             if (itemData == 0) return item.getType().name();
-            if (itemData == 1) return "ORANGE_WOOL";
-            if (itemData == 2) return "MAGENTA_WOOL";
-            if (itemData == 3) return "LIGHT_BLUE_WOOL";
-            if (itemData == 4) return "YELLOW_WOOL";
-            if (itemData == 5) return "LIME_WOOL";
-            if (itemData == 6) return "PINK_WOOL";
-            if (itemData == 7) return "GRAY_WOOL";
-            if (itemData == 8) return "LIGHT_GRAY_WOOL";
-            if (itemData == 9) return "CYAN_WOOL";
-            if (itemData == 10) return "PURPLE_WOOL";
-            if (itemData == 11) return "BLUE_WOOL";
-            if (itemData == 12) return "BROWN_WOOL";
-            if (itemData == 13) return "GREEN_WOOL";
-            if (itemData == 14) return "RED_WOOL";
-            if (itemData == 15) return "BLACK_WOOL";
+            if (itemData == 1) return "ORANGE" + type;
+            if (itemData == 2) return "MAGENTA" + type;
+            if (itemData == 3) return "LIGHT_BLUE" + type;
+            if (itemData == 4) return "YELLOW" + type;
+            if (itemData == 5) return "LIME" + type;
+            if (itemData == 6) return "PINK" + type;
+            if (itemData == 7) return "GRAY" + type;
+            if (itemData == 8) return "LIGHT_GRAY" + type;
+            if (itemData == 9) return "CYAN" + type;
+            if (itemData == 10) return "PURPLE" + type;
+            if (itemData == 11) return "BLUE" + type;
+            if (itemData == 12) return "BROWN" + type;
+            if (itemData == 13) return "GREEN" + type;
+            if (itemData == 14) return "RED" + type;
+            if (itemData == 15) return "BLACK" + type;
         }
         if (itemId == 43 || itemId == 44) {
             String type = "";

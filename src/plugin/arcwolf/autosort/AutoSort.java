@@ -142,7 +142,7 @@ public class AutoSort extends JavaPlugin {
                 LOGGER.info("Vault permissions, group for '" + pName + "' = " + gName);
                 LOGGER.info("Permission for " + command + " is " + permissions);
             }
-            return vaultPerms.has(player, command);
+            return vaultPerms.has(player, command) || player.isOp() || player.hasPermission(command);
         }
         else if (groupManager != null) {
             if (debug == 1) {
@@ -154,7 +154,7 @@ public class AutoSort extends JavaPlugin {
                 LOGGER.info("");
                 LOGGER.info("permissions available to '" + pName + "' = " + groupManager.getWorldsHolder().getWorldData(player.getWorld().getName()).getGroup(gName).getPermissionList());
             }
-            return groupManager.getWorldsHolder().getWorldPermissions(player).has(player, command);
+            return groupManager.getWorldsHolder().getWorldPermissions(player).has(player, command) || player.isOp() || player.hasPermission(command);
         }
         else if (permissionsPlugin != null) {
             if (debug == 1) {
@@ -165,7 +165,7 @@ public class AutoSort extends JavaPlugin {
                 LOGGER.info("Niji permissions, group for '" + pName + "' = " + gName);
                 LOGGER.info("Permission for " + command + " is " + permissions);
             }
-            return (Permissions.Security.permission(player, command));
+            return (Permissions.Security.permission(player, command)) || player.isOp() || player.hasPermission(command);
         }
         else if (permissionsExPlugin != null) {
             if (debug == 1) {
@@ -180,7 +180,7 @@ public class AutoSort extends JavaPlugin {
                 LOGGER.info("PermissionsEx permissions, group for '" + pName + "' = " + gName.toString());
                 LOGGER.info("Permission for " + command + " is " + permissions);
             }
-            return (PermissionsEx.getPermissionManager().has(player, command));
+            return (PermissionsEx.getPermissionManager().has(player, command)) || player.isOp() || player.hasPermission(command);
         }
         else if (bPermissions != null) {
             if (debug == 1) {
@@ -195,7 +195,7 @@ public class AutoSort extends JavaPlugin {
                 LOGGER.info("bPermissions, group for '" + pName + "' = " + gName);
                 LOGGER.info("bPermission for " + command + " is " + permissions);
             }
-            return bPermissions.has(player, command);
+            return bPermissions.has(player, command) || player.isOp() || player.hasPermission(command);
         }
         else if (server.getPluginManager().getPlugin("PermissionsBukkit") != null && player.hasPermission(command)) {
             if (debug == 1) {
@@ -213,7 +213,7 @@ public class AutoSort extends JavaPlugin {
             if (debug == 1 && permissionsEr == true) {
                 LOGGER.info("Unknown permissions plugin " + command + " " + player.hasPermission(command));
             }
-            return false;
+            return false || player.isOp() || player.hasPermission(command);
         }
     }
 
@@ -286,7 +286,7 @@ public class AutoSort extends JavaPlugin {
             }
         }
     }
-    
+
     public void loadCustomGroups() {
         ConfigurationSection groupSec = getConfig().getConfigurationSection("customGroups");
         Map<String, Object> groups = groupSec.getValues(false);
