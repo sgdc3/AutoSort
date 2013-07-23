@@ -58,6 +58,7 @@ commands:
     usage: /aswithdraw <ownerName> <networkName>
 permissions:
   autosort.*:
+    default: op
     children:
       autosort.use: true
       autosort.use.withdraw: true
@@ -79,6 +80,7 @@ permissions:
       autosort.listasmembers: true
       
   autosort.common: 
+    default: true
     children:
       autosort.use: true
       autosort.use.withdraw: true
@@ -88,10 +90,12 @@ permissions:
       autosort.remfromnet: true
       autosort.listasgroups: true
   autosort.create:
+    default: false
     children:
       autosort.use: true
       autosort.use.withdraw: true
   autosort.addasgroup:
+    default: false
     children:
       autosort.modasgroup: true
       autosort.delasgroup: true
