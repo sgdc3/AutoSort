@@ -7,6 +7,22 @@ proximity-exceptions:
     exampleNetwork: 20
   anotherExampleUser: 
     anotherNetworkExample: 150
+inventoryBlocks:
+  DEPOSIT:
+  - 54
+  - 61
+  - 62
+  - 146
+  - 154
+  WITHDRAW:
+  - 54
+  - 146
+  SORT:
+  - 23
+  - 54
+  - 146
+  - 154
+  - 158
 customGroups:
   IRON_TOOLS:
   - 256

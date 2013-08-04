@@ -35,11 +35,25 @@ public class Util {
     }
 
     public boolean isValidInventoryBlock(Player player, Block block, Boolean isEventCheck) {
+        int blockId = block.getTypeId();
+        int blockData = block.getData();
+        if (plugin.sortBlocks.containsKey(new InventoryBlock(blockId, blockData))) {
+            return true;
+        }
+        else if (plugin.sortBlocks.containsKey(new InventoryBlock(blockId))) {
+            return true;
+        }
+        else {
+            if (isEventCheck) player.sendMessage(ChatColor.RED + "That's not a recognized inventory block!");
+            return false;
+        }
+        /*
         if (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST) ||
                 block.getType().equals(Material.DISPENSER) || block.getType().equals(Material.DROPPER) ||
                 block.getType().equals(Material.HOPPER)) { return true; }
-        if (isEventCheck) player.sendMessage(ChatColor.RED + "That's not recognised inventory block!");
+        if (isEventCheck) player.sendMessage(ChatColor.RED + "That's not a recognised inventory block!");
         return false;
+        */
     }
 
     public boolean isValidDepositBlock(Block block) {
@@ -47,17 +61,48 @@ public class Util {
     }
 
     public boolean isValidDepositBlock(Player player, Block block, Boolean isEventCheck) {
+        int blockId = block.getTypeId();
+        int blockData = block.getData();
+        if (plugin.depositBlocks.containsKey(new InventoryBlock(blockId, blockData))) {
+            return true;
+        }
+        else if (plugin.depositBlocks.containsKey(new InventoryBlock(blockId))) {
+            return true;
+        }
+        else {
+            if (isEventCheck) player.sendMessage(ChatColor.RED + "That's not a recognized inventory block!");
+            return false;
+        }
+        /*
         if (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST) ||
                 block.getType().equals(Material.FURNACE) || block.getType().equals(Material.BURNING_FURNACE) ||
                 block.getType().equals(Material.HOPPER)) { return true; }
-        if (isEventCheck) player.sendMessage(ChatColor.RED + "That's not recognised inventory block!");
+        if (isEventCheck) player.sendMessage(ChatColor.RED + "That's not a recognized inventory block!");
         return false;
+        */
+    }
+
+    public boolean isValidWithdrawBlock(Block block) {
+        return isValidWithdrawBlock(null, block, false);
     }
 
     public boolean isValidWithdrawBlock(Player player, Block block, Boolean isEventCheck) {
+        int blockId = block.getTypeId();
+        int blockData = block.getData();
+        if (plugin.withdrawBlocks.containsKey(new InventoryBlock(blockId, blockData))) {
+            return true;
+        }
+        else if (plugin.withdrawBlocks.containsKey(new InventoryBlock(blockId))) {
+            return true;
+        }
+        else {
+            if (isEventCheck) player.sendMessage(ChatColor.RED + "That's not a recognized inventory block!");
+            return false;
+        }
+        /*
         if (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST)) { return true; }
         if (isEventCheck) player.sendMessage(ChatColor.RED + "Must be a chest or trapped chest!");
-        return false;
+        return false;*/
     }
 
     public static ItemStack parseMaterialID(String str) {

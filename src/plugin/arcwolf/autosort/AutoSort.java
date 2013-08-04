@@ -56,6 +56,9 @@ public class AutoSort extends JavaPlugin {
 
     public Map<Block, SortNetwork> allNetworkBlocks = new HashMap<Block, SortNetwork>();
     public Map<String, List<SortNetwork>> networks = new HashMap<String, List<SortNetwork>>();
+    public Map<InventoryBlock, InventoryBlock> sortBlocks = new HashMap<InventoryBlock, InventoryBlock>();
+    public Map<InventoryBlock, InventoryBlock> depositBlocks = new HashMap<InventoryBlock, InventoryBlock>();
+    public Map<InventoryBlock, InventoryBlock> withdrawBlocks = new HashMap<InventoryBlock, InventoryBlock>();
 
     public static Map<String, List<ItemStack>> customMatGroups = new HashMap<String, List<ItemStack>>();
     public static Map<String, ProxExcep> proximities = new HashMap<String, ProxExcep>();
@@ -103,6 +106,7 @@ public class AutoSort extends JavaPlugin {
 
         getPermissionsPlugin();
         loadCustomGroups();
+        loadInventoryBlocks();
         v4Loaded = loadVersion4Save();
         if (!v4Loaded) {
             loadVersion5Save();
@@ -298,6 +302,44 @@ public class AutoSort extends JavaPlugin {
                 matList.add(is);
             }
             customMatGroups.put(key.toUpperCase(), matList);
+        }
+    }
+
+    public void loadInventoryBlocks() {
+        ConfigurationSection ibSec = getConfig().getConfigurationSection("inventoryBlocks");
+        Map<String, Object> sortType = ibSec.getValues(false);
+        for(String key : sortType.keySet()) {
+            List<String> idList = ibSec.getStringList(key);
+            Map<InventoryBlock, InventoryBlock> ivb;
+            if (key.toUpperCase().equals("DEPOSIT"))
+                ivb = depositBlocks;
+            else if (key.toUpperCase().equals("WITHDRAW")) {
+                ivb = withdrawBlocks;
+            }
+            else {
+                ivb = sortBlocks;
+            }
+            for(String id : idList) {
+                String[] split = id.split(":");
+                if (split.length > 1) {
+                    try {
+                        InventoryBlock ib = new InventoryBlock(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
+                        ivb.put(ib, ib);
+                    } catch (Exception e) {
+                        AutoSort.LOGGER.warning("Error Parsing Inventory Block in " + key + " group. ID found was: " + split[0] + " " + split[1]);
+                        continue;
+                    }
+                }
+                else {
+                    try {
+                        InventoryBlock ib = new InventoryBlock(Integer.parseInt(id));
+                        ivb.put(ib, ib);
+                    } catch (Exception e) {
+                        AutoSort.LOGGER.warning("Error Parsing Inventory Block in " + key + " group. ID found was: " + id);
+                        continue;
+                    }
+                }
+            }
         }
     }
 
@@ -636,7 +678,7 @@ public class AutoSort extends JavaPlugin {
                 Block sign = netItem.sign.getLocation().getBlock();
                 if (!chest.getChunk().isLoaded()) chestChunkLoaded = chest.getChunk().load();
                 if (!sign.getChunk().isLoaded()) signChunkLoaded = sign.getChunk().load();
-                if (!util.isValidDepositBlock(chest)) {
+                if (!util.isValidWithdrawBlock(chest)) {
                     removeWithdrawChests.add(chest);
                     removeNetMapBlock.add(chest);
                     removeNetMapBlock.add(sign);
