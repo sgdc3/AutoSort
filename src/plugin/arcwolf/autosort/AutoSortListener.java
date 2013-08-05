@@ -147,8 +147,8 @@ public class AutoSortListener implements Listener {
             else
                 return;
         }
-        else if (holder instanceof InventoryHolder) {
-            block = ((BlockState)holder).getBlock();
+        else if (holder instanceof BlockState) {
+            block = ((BlockState) holder).getBlock();
             sortNetwork = plugin.allNetworkBlocks.get(block);
             if (sortNetwork == null) return;
             if (sortNetwork.withdrawChests.containsKey(block)) {
