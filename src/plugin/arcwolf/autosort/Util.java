@@ -10,10 +10,10 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
-import org.bukkit.block.Chest;
-import org.bukkit.block.Dispenser;
-import org.bukkit.block.Dropper;
-import org.bukkit.block.Hopper;
+//import org.bukkit.block.Chest;
+//import org.bukkit.block.Dispenser;
+//import org.bukkit.block.Dropper;
+//import org.bukkit.block.Hopper;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -150,10 +150,12 @@ public class Util {
     }
 
     public static InventoryHolder getInventoryHolder(Block block) {
-        InventoryHolder invHolder = null;
+        //InventoryHolder invHolder = null;
         if (!block.getChunk().isLoaded()) block.getChunk().load();
         if (!block.getChunk().isLoaded()) return null;
         BlockState state = block.getState();
+        return (InventoryHolder) state;
+        /*
         if (state == null) {
             return null;
         }
@@ -169,8 +171,8 @@ public class Util {
         else if (state instanceof Hopper && block.getType().equals(Material.HOPPER)) {
             invHolder = (Hopper) state;
         }
-
         return invHolder;
+        */
     }
 
     public Block findSign(Block block) {
@@ -183,6 +185,12 @@ public class Util {
     }
 
     public Inventory getInventory(Block block) {
+        InventoryHolder ih = (InventoryHolder) block.getState();
+        if (ih != null)
+            return ih.getInventory();
+        else
+            return null;
+        /*
         if (block.getState() instanceof Chest && (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST)))
             return ((Chest) block.getState()).getInventory();
         else if (block.getState() instanceof Dispenser && block.getType().equals(Material.DISPENSER)) {
@@ -196,6 +204,7 @@ public class Util {
         }
         else
             return null;
+        */
     }
 
     public Block doubleChest(Block block) {
@@ -259,10 +268,6 @@ public class Util {
     }
 
     public void updateChestInventory(Player player, CustomPlayer settings) {
-        Chest chest = null;
-        if (settings.block != null) {
-            chest = (Chest) settings.block.getState();
-        }
         ItemStack dummyItem = new ItemStack(373, 1);
         try {
             if (settings.block != null && !settings.block.getChunk().isLoaded())
@@ -286,7 +291,7 @@ public class Util {
         } catch (Exception e) {
             ConsoleCommandSender sender = plugin.getServer().getConsoleSender();
             sender.sendMessage(ChatColor.RED + "AutoSort critical Withdraw Chest error!");
-            sender.sendMessage(chest != null ? "Chest at " + chest.getLocation() : "Player at " + player.getLocation());
+            sender.sendMessage(settings.block != null ? "Chest at " + settings.block.getLocation() : "Player at " + player.getLocation());
             sender.sendMessage("Player was " + player.getName());
             sender.sendMessage("Owner was " + settings.owner);
             sender.sendMessage("Network was " + settings.netName);

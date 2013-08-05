@@ -11,9 +11,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.Chest;
+//import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
 import org.bukkit.block.Furnace;
 import org.bukkit.block.Sign;
@@ -128,31 +129,31 @@ public class AutoSortListener implements Listener {
         CustomPlayer settings = CustomPlayer.getSettings(player);
         if (holder instanceof DoubleChest) {
             DoubleChest dblchest = (DoubleChest) holder;
-            lChest = ((Chest) dblchest.getLeftSide()).getBlock();
-            rChest = ((Chest) dblchest.getRightSide()).getBlock();
+            lChest = ((BlockState) dblchest.getLeftSide()).getBlock();
+            rChest = ((BlockState) dblchest.getRightSide()).getBlock();
             sortNetwork = plugin.allNetworkBlocks.get(lChest);
             if (sortNetwork == null) sortNetwork = plugin.allNetworkBlocks.get(rChest);
             if (sortNetwork == null) return;
             if (sortNetwork.withdrawChests.containsKey(lChest)) {
                 settings.block = lChest;
-                settings.withdrawInventory = ((Chest) lChest.getState()).getInventory();
+                settings.withdrawInventory = ((InventoryHolder) lChest.getState()).getInventory();
                 block = lChest;
             }
             else if (sortNetwork.withdrawChests.containsKey(rChest)) {
                 settings.block = rChest;
-                settings.withdrawInventory = ((Chest) rChest.getState()).getInventory();
+                settings.withdrawInventory = ((InventoryHolder) rChest.getState()).getInventory();
                 block = rChest;
             }
             else
                 return;
         }
-        else if (holder instanceof Chest) {
-            block = ((Chest) holder).getBlock();
+        else if (holder instanceof InventoryHolder) {
+            block = ((BlockState)holder).getBlock();
             sortNetwork = plugin.allNetworkBlocks.get(block);
             if (sortNetwork == null) return;
             if (sortNetwork.withdrawChests.containsKey(block)) {
                 settings.block = block;
-                settings.withdrawInventory = ((Chest) block.getState()).getInventory();
+                settings.withdrawInventory = holder.getInventory();
             }
             else
                 return;
