@@ -7,7 +7,6 @@ import java.util.Map;
 
 import org.bukkit.block.Block;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 import plugin.arcwolf.autosort.AutoSort;
@@ -46,11 +45,10 @@ public class SortChest{
     }
     
     public int getItemAmount(ItemStack item) {
-        InventoryHolder invHolder = Util.getInventoryHolder(block);
+        Inventory inv = Util.getInventory(block);
         int amount = 0;
         try {
-            if (invHolder != null) {
-                Inventory inv = invHolder.getInventory();
+            if (inv != null) {
                 Map<Integer, ? extends ItemStack> allItems = inv.all(item.getType());
                 Collection<? extends ItemStack> values = allItems.values();
                 for(ItemStack i : values) {

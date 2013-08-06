@@ -14,6 +14,7 @@ import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.Chest;
 //import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
 import org.bukkit.block.Furnace;
@@ -147,7 +148,7 @@ public class AutoSortListener implements Listener {
             else
                 return;
         }
-        else if (holder instanceof BlockState) {
+        else if (holder instanceof Chest) {
             block = ((BlockState) holder).getBlock();
             sortNetwork = plugin.allNetworkBlocks.get(block);
             if (sortNetwork == null) return;

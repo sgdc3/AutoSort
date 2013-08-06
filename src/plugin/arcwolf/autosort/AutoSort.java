@@ -63,6 +63,7 @@ public class AutoSort extends JavaPlugin {
     public static Map<String, List<ItemStack>> customMatGroups = new HashMap<String, List<ItemStack>>();
     public static Map<String, ProxExcep> proximities = new HashMap<String, ProxExcep>();
     public static int defaultProx = 0;
+    public static boolean bkError = false;
 
     public boolean worldRestrict = false;
     public static boolean emptiesFirst = true;
@@ -88,7 +89,7 @@ public class AutoSort extends JavaPlugin {
 
     private boolean permissionsEr = false;
     private boolean permissionsSet = false;
-    private int debug = 0;
+    private static int debug = 0;
 
     public void onEnable() {
 
@@ -1002,5 +1003,9 @@ public class AutoSort extends JavaPlugin {
             }
         }
         return null;
+    }
+    
+    public static int getDebug(){
+        return debug;
     }
 }

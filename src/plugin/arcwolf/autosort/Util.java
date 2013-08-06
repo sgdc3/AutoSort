@@ -3,31 +3,30 @@ package plugin.arcwolf.autosort;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 import java.util.Map;
-
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
-//import org.bukkit.block.Chest;
-//import org.bukkit.block.Dispenser;
-//import org.bukkit.block.Dropper;
-//import org.bukkit.block.Hopper;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
+
+import com.bergerkiller.bukkit.common.conversion.Conversion;
+import com.bergerkiller.bukkit.common.reflection.classes.TileEntityRef;
 
 import plugin.arcwolf.autosort.Network.SortChest;
 
 public class Util {
 
-    private AutoSort plugin;
+    private static AutoSort plugin;
 
     public Util(AutoSort plugin) {
-        this.plugin = plugin;
+        Util.plugin = plugin;
     }
 
     public boolean isValidInventoryBlock(Block block) {
@@ -47,13 +46,6 @@ public class Util {
             if (isEventCheck) player.sendMessage(ChatColor.RED + "That's not a recognized inventory block!");
             return false;
         }
-        /*
-        if (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST) ||
-                block.getType().equals(Material.DISPENSER) || block.getType().equals(Material.DROPPER) ||
-                block.getType().equals(Material.HOPPER)) { return true; }
-        if (isEventCheck) player.sendMessage(ChatColor.RED + "That's not a recognised inventory block!");
-        return false;
-        */
     }
 
     public boolean isValidDepositBlock(Block block) {
@@ -73,13 +65,6 @@ public class Util {
             if (isEventCheck) player.sendMessage(ChatColor.RED + "That's not a recognized inventory block!");
             return false;
         }
-        /*
-        if (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST) ||
-                block.getType().equals(Material.FURNACE) || block.getType().equals(Material.BURNING_FURNACE) ||
-                block.getType().equals(Material.HOPPER)) { return true; }
-        if (isEventCheck) player.sendMessage(ChatColor.RED + "That's not a recognized inventory block!");
-        return false;
-        */
     }
 
     public boolean isValidWithdrawBlock(Block block) {
@@ -99,10 +84,6 @@ public class Util {
             if (isEventCheck) player.sendMessage(ChatColor.RED + "That's not a recognized inventory block!");
             return false;
         }
-        /*
-        if (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST)) { return true; }
-        if (isEventCheck) player.sendMessage(ChatColor.RED + "Must be a chest or trapped chest!");
-        return false;*/
     }
 
     public static ItemStack parseMaterialID(String str) {
@@ -149,31 +130,69 @@ public class Util {
         return str.length() == pos.getIndex();
     }
 
-    public static InventoryHolder getInventoryHolder(Block block) {
-        //InventoryHolder invHolder = null;
+    public static Inventory getInventory(Block block) {
         if (!block.getChunk().isLoaded()) block.getChunk().load();
         if (!block.getChunk().isLoaded()) return null;
         BlockState state = block.getState();
-        return (InventoryHolder) state;
-        /*
-        if (state == null) {
-            return null;
-        }
-        else if (state instanceof Dispenser && block.getType().equals(Material.DISPENSER)) {
-            invHolder = (Dispenser) state;
-        }
-        else if (state instanceof Chest && (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST))) {
-            invHolder = (Chest) state;
-        }
-        else if (state instanceof Dropper && block.getType().equals(Material.DROPPER)) {
-            invHolder = (Dropper) state;
-        }
-        else if (state instanceof Hopper && block.getType().equals(Material.HOPPER)) {
-            invHolder = (Hopper) state;
-        }
-        return invHolder;
-        */
+        if (state instanceof InventoryHolder)
+            return ((InventoryHolder) state).getInventory();
+        else
+            return tryNMSInventory(block);
     }
+    
+    private static Inventory tryNMSInventory(Block block) {
+        Plugin p = plugin.getServer().getPluginManager().getPlugin("BKCommonLib");
+        if (p != null) {
+            if (AutoSort.bkError) {
+                AutoSort.LOGGER.info(plugin.getName() + ": BKCommonLib detected, attempting custom inventory access.");
+            }
+            AutoSort.bkError = false;
+            Inventory i = null;
+            try {
+                if (block == null) return null;
+                Object tileEntity = TileEntityRef.getFromWorld(block);
+                i = Conversion.toInventory.convert(tileEntity);
+            } catch (Exception e) {
+                if (AutoSort.getDebug() == 2) {
+                    System.out.println("unknown inventory type");
+                    e.printStackTrace();
+                    System.out.println("----------------------------");
+                }
+            }
+            return i;
+        }
+        else {
+            if (!AutoSort.bkError) {
+                AutoSort.bkError = true;
+                AutoSort.LOGGER.warning(plugin.getName() + ": Can't access custom inventories without BKCommonLib Loaded.");
+                AutoSort.LOGGER.warning(plugin.getName() + ": BKCommonLib can be found at:");
+                AutoSort.LOGGER.warning(plugin.getName() + ": http://dev.bukkit.org/bukkit-plugins/bkcommonlib/");
+            }
+        }
+        return null;
+    }
+
+    /* For Future Reference
+    public static Inventory tryNMSInventory(Block block) {
+        Inventory i = null;
+        try {
+            if (block == null) return null;
+            CraftWorld world = (CraftWorld) block.getWorld();
+            World mWorld = world.getHandle();
+            TileEntity te = mWorld.getTileEntity(block.getX(), block.getY(), block.getZ());
+            IInventory ii = (IInventory) te;
+            CraftInventory ci = new CraftInventory(ii);
+            i = ci;
+        } catch (Exception e) {
+            if (AutoSort.getDebug() == 1) {
+                System.out.println("unknown inventory type");
+                e.printStackTrace();
+                System.out.println("----------------------------");
+            }
+        }
+        return i;
+    }
+    */
 
     public Block findSign(Block block) {
         BlockFace[] surchest = { BlockFace.SELF, BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST };
@@ -182,29 +201,6 @@ public class Util {
             if (sign.getType().equals(Material.WALL_SIGN) || sign.getType().equals(Material.SIGN_POST)) { return sign; }
         }
         return null;
-    }
-
-    public Inventory getInventory(Block block) {
-        InventoryHolder ih = (InventoryHolder) block.getState();
-        if (ih != null)
-            return ih.getInventory();
-        else
-            return null;
-        /*
-        if (block.getState() instanceof Chest && (block.getType().equals(Material.CHEST) || block.getType().equals(Material.TRAPPED_CHEST)))
-            return ((Chest) block.getState()).getInventory();
-        else if (block.getState() instanceof Dispenser && block.getType().equals(Material.DISPENSER)) {
-            return ((Dispenser) block.getState()).getInventory();
-        }
-        else if (block.getState() instanceof Dropper && block.getType().equals(Material.DROPPER)) {
-            return ((Dropper) block.getState()).getInventory();
-        }
-        else if (block.getState() instanceof Hopper && block.getType().equals(Material.HOPPER)) {
-            return ((Hopper) block.getState()).getInventory();
-        }
-        else
-            return null;
-        */
     }
 
     public Block doubleChest(Block block) {
@@ -323,7 +319,7 @@ public class Util {
     public boolean updateInventoryList(Player player, CustomPlayer settings) {
         for(SortChest chest : settings.sortNetwork.sortChests) {
             if (chest.signText.contains("LAVAFURNACE")) continue; //TODO lavafurnace block
-            Inventory inv = Util.getInventoryHolder(chest.block).getInventory();
+            Inventory inv = Util.getInventory(chest.block);
             if (inv == null) continue;
             for(ItemStack item : inv) {
                 if (item != null) {

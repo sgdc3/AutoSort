@@ -12,7 +12,6 @@ import org.bukkit.block.Furnace;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
@@ -75,9 +74,9 @@ public class SortTask implements Runnable {
                     for(Entry<Block, NetworkItem> depChest : net.depositChests.entrySet()) {
                         if (depChest.getKey().getChunk().isLoaded()) {
                             if (net != null && plugin.util.isValidDepositBlock(depChest.getKey())) {
-                                InventoryHolder chest = Util.getInventoryHolder(depChest.getKey());
+                                Inventory chest = Util.getInventory(depChest.getKey());
                                 if (chest == null) continue;
-                                Inventory inv = chest.getInventory();
+                                Inventory inv = chest;
                                 ItemStack[] contents = inv.getContents();
                                 int i;
                                 ItemStack is;
@@ -107,18 +106,20 @@ public class SortTask implements Runnable {
                                 if (chest.priority == i && plugin.util.isValidInventoryBlock(chest.block)) {
                                     maintainLavaFurnace(net, chest, chest.block);
                                     if (chest.signText.contains("LAVAFURNACE")) continue; //TODO lavafurnace block
-                                    Inventory inv = plugin.util.getInventory(chest.block);
-                                    ItemStack[] items = inv.getContents();
-                                    ItemStack is;
-                                    for(int j = 0; j < items.length; j++) {
-                                        is = items[j];
-                                        if (is != null) {
-                                            if (net.sortItem(is, i - 1)) {
-                                                items[j] = null;
+                                    Inventory inv = Util.getInventory(chest.block);
+                                    if (inv != null) {
+                                        ItemStack[] items = inv.getContents();
+                                        ItemStack is;
+                                        for(int j = 0; j < items.length; j++) {
+                                            is = items[j];
+                                            if (is != null) {
+                                                if (net.sortItem(is, i - 1)) {
+                                                    items[j] = null;
+                                                }
                                             }
                                         }
+                                        inv.setContents(items);
                                     }
-                                    inv.setContents(items);
                                 }
                             }
                         }
@@ -153,9 +154,9 @@ public class SortTask implements Runnable {
             if (lfp.datawriter.isSourceChestFuel() && fo.power < 1 && fSA > 0 && fFA == 0 && burnTime <= 0 && fPA == 0 && !waitTime) { // Keep Furnaces Fueled
                 waitTime = true;
                 previousTime = timer;
-                InventoryHolder chest = net.findItemStack(new ItemStack(327));
+                Inventory chest = net.findItemStack(new ItemStack(327));
                 if (chest instanceof Chest) {
-                    Inventory inv = chest.getInventory();
+                    Inventory inv = chest;
                     new ChestProcessing((LavaFurnace) LavaFurnace.plugin).fuelFurnaceWithLava(fo, f);
 
                     int index = inv.first(Material.LAVA_BUCKET);

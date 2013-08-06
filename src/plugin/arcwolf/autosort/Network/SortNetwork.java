@@ -10,7 +10,6 @@ import java.util.Map;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 import plugin.arcwolf.autosort.AutoSort;
@@ -76,15 +75,14 @@ public class SortNetwork {
         return sortItem(item, 4);
     }
 
-    public InventoryHolder findItemStack(ItemStack item) {
-        InventoryHolder invHolder = null;
+    public Inventory findItemStack(ItemStack item) {
+        Inventory inv = null;
         for(SortChest sc : sortChests) {
-            invHolder = Util.getInventoryHolder(sc.block);
+            inv = Util.getInventory(sc.block);
             if (!sc.block.getChunk().isLoaded())
                 sc.block.getChunk().load();
-            if (invHolder != null) {
-                Inventory inv = invHolder.getInventory();
-                if (inv.first(item.getType()) != -1) return invHolder;
+            if (inv != null) {
+                if (inv.first(item.getType()) != -1) return inv;
             }
         }
         return null;
@@ -138,13 +136,11 @@ public class SortNetwork {
     }
 
     private boolean moveItemToChest(ItemStack item, SortChest chest) {
-        InventoryHolder invHolder = Util.getInventoryHolder(chest.block);
-        if (invHolder != null) {
+        Inventory inv = Util.getInventory(chest.block);
+        if (inv != null) {
             if (!chest.block.getChunk().isLoaded()) chest.block.getChunk().load();
             if (chest.block.getChunk().isLoaded()) {
                 try {
-                    Inventory inv = invHolder.getInventory();
-                    if (inv == null) return false;
                     if (item != null) {
                         Map<Integer, ItemStack> couldntFit = inv.addItem(item);
                         if (couldntFit.isEmpty()) { return true; }
