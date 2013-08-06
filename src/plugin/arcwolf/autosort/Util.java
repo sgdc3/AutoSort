@@ -139,7 +139,7 @@ public class Util {
         else
             return tryNMSInventory(block);
     }
-    
+
     private static Inventory tryNMSInventory(Block block) {
         Plugin p = plugin.getServer().getPluginManager().getPlugin("BKCommonLib");
         if (p != null) {
@@ -154,9 +154,9 @@ public class Util {
                 i = Conversion.toInventory.convert(tileEntity);
             } catch (Exception e) {
                 if (AutoSort.getDebug() == 2) {
-                    System.out.println("unknown inventory type");
+                    AutoSort.LOGGER.warning(plugin.getName() + ": unknown inventory type");
                     e.printStackTrace();
-                    System.out.println("----------------------------");
+                    AutoSort.LOGGER.warning("----------------------------");
                 }
             }
             return i;

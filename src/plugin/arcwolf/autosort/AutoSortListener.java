@@ -884,7 +884,7 @@ public class AutoSortListener implements Listener {
             if (dir.equalsIgnoreCase("F")) {
                 switch (signData) {
                     case 2:
-                        x--;
+                        z++;
                         break;
                     case 3:
                         z--;
@@ -900,7 +900,7 @@ public class AutoSortListener implements Listener {
             if (dir.equalsIgnoreCase("B")) {
                 switch (signData) {
                     case 2:
-                        x++;
+                        z--;
                         break;
                     case 3:
                         z++;
