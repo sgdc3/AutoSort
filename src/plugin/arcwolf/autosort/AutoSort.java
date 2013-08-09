@@ -279,16 +279,21 @@ public class AutoSort extends JavaPlugin {
     }
 
     public void loadConfig() {
-        debug = getConfig().getInt("debug", 0);
-        worldRestrict = getConfig().getBoolean("worldRestrict", false);
-        emptiesFirst = getConfig().getBoolean("fill-emptier-first", false);
-        defaultProx = getConfig().getInt("proximity", 0);
-        ConfigurationSection proxSec = getConfig().getConfigurationSection("proximity-exceptions");
-        for(String owner : proxSec.getKeys(false)) {
-            ConfigurationSection username = proxSec.getConfigurationSection(owner);
-            for(String network : username.getKeys(false)) {
-                proximities.put(owner, new ProxExcep(owner, network, username.getInt(network)));
+        try {
+            debug = getConfig().getInt("debug", 0);
+            worldRestrict = getConfig().getBoolean("worldRestrict", false);
+            emptiesFirst = getConfig().getBoolean("fill-emptier-first", false);
+            defaultProx = getConfig().getInt("proximity", 0);
+            ConfigurationSection proxSec = getConfig().getConfigurationSection("proximity-exceptions");
+            for(String owner : proxSec.getKeys(false)) {
+                ConfigurationSection username = proxSec.getConfigurationSection(owner);
+                for(String network : username.getKeys(false)) {
+                    proximities.put(owner, new ProxExcep(owner, network, username.getInt(network)));
+                }
             }
+        } catch (Exception e) {
+            LOGGER.warning(pluginName + ": Error loading config. Try reloading the plugin.");
+            LOGGER.warning(pluginName + ": If that does not work, delete the config and try again.");
         }
     }
 
@@ -1004,8 +1009,8 @@ public class AutoSort extends JavaPlugin {
         }
         return null;
     }
-    
-    public static int getDebug(){
+
+    public static int getDebug() {
         return debug;
     }
 }

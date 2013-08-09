@@ -310,7 +310,7 @@ public class AutoSortListener implements Listener {
                     if (option.startsWith("D:")) {
                         storageBlock = getDirection(option.split(":")[1], signBlock);
                     }
-                    if (plugin.util.isValidWithdrawBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock)) {
+                    if (plugin.util.isValidWithdrawBlock(player, storageBlock, true) && !isInNetwork(player, storageBlock) && storageBlock.getState() instanceof InventoryHolder) {
                         if (!plugin.worldRestrict || sortNetwork.world.equalsIgnoreCase(signBlock.getWorld().getName().toLowerCase())) {
                             int prox = getProximity(player.getName(), netName);
                             Location origin = getOrigin(sortNetwork.sortChests);
@@ -338,6 +338,12 @@ public class AutoSortListener implements Listener {
                         }
                     }
                     else {
+                        if(plugin.util.isValidWithdrawBlock(storageBlock) && !(storageBlock.getState() instanceof InventoryHolder)){
+                            player.sendMessage(ChatColor.RED + "This inventory block is not registered with Craftbukkit.");
+                            player.sendMessage(ChatColor.RED + "It will not fire inventory events and so can NOT be used as a withdraw chest.");
+                            AutoSort.LOGGER.warning(plugin.getName() + ": Block Id " + storageBlock.getTypeId() + " is not a valid withdraw chest.");
+                            AutoSort.LOGGER.warning(plugin.getName() + ": Edit config to remove.");
+                        }
                         event.setCancelled(true);
                         return;
                     }
