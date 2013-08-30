@@ -447,16 +447,21 @@ public class CommandHandler {
             plugin.stillItems.clear();
             plugin.allNetworkBlocks.clear();
             plugin.networks.clear();
+            plugin.sortBlocks.clear();
+            plugin.depositBlocks.clear();
+            plugin.withdrawBlocks.clear();
             AutoSort.customMatGroups.clear();
             AutoSort.proximities.clear();
             sender.sendMessage(ChatColor.YELLOW + "AutoSort variables cleared.");
 
-            plugin.loadVersion5Save();
-            sender.sendMessage(ChatColor.YELLOW + "AutoSort database reloaded.");
             plugin.loadConfig();
             sender.sendMessage(ChatColor.YELLOW + "AutoSort config reloaded.");
             plugin.loadCustomGroups();
             sender.sendMessage(ChatColor.YELLOW + "AutoSort custom groups reloaded.");
+            plugin.loadInventoryBlocks();
+            sender.sendMessage(ChatColor.YELLOW + "AutoSort inventory block list reloaded.");
+            plugin.loadVersion5Save();
+            sender.sendMessage(ChatColor.YELLOW + "AutoSort database reloaded.");
             sender.sendMessage(ChatColor.GREEN + "AutoSort reload finished successfully.");
         } catch (Exception e) {
             e.printStackTrace();
