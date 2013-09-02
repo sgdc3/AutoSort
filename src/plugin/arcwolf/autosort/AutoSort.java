@@ -67,6 +67,7 @@ public class AutoSort extends JavaPlugin {
 
     public boolean worldRestrict = false;
     public static boolean emptiesFirst = true;
+    public static boolean keepPriority = false;
     private boolean v4Loaded = false;
 
     private Server server;
@@ -284,6 +285,7 @@ public class AutoSort extends JavaPlugin {
             worldRestrict = getConfig().getBoolean("worldRestrict", false);
             emptiesFirst = getConfig().getBoolean("fill-emptier-first", false);
             defaultProx = getConfig().getInt("proximity", 0);
+            keepPriority = getConfig().getBoolean("keep-priority-sorted", false);
             ConfigurationSection proxSec = getConfig().getConfigurationSection("proximity-exceptions");
             for(String owner : proxSec.getKeys(false)) {
                 ConfigurationSection username = proxSec.getConfigurationSection(owner);

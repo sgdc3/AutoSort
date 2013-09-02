@@ -7,7 +7,6 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.Chest;
 import org.bukkit.block.Furnace;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Item;
@@ -32,6 +31,7 @@ public class SortTask implements Runnable {
     private long timer = 0;
     private long previousTime = 0;
     boolean waitTime = false;
+    private long tick = 0;
 
     public SortTask(AutoSort autoSort) {
         plugin = autoSort;
@@ -42,9 +42,8 @@ public class SortTask implements Runnable {
         if (waitTime && timer - previousTime > 5000) {
             waitTime = false;
         }
-
         try {
-            for(Item item : plugin.items) {
+            for(Item item : plugin.items) { // Depost Signs Sort
                 if (item.getVelocity().equals(new Vector(0, 0, 0))) {
                     plugin.stillItems.add(item);
                     World world = item.getWorld();
@@ -67,9 +66,9 @@ public class SortTask implements Runnable {
             AutoSort.LOGGER.warning("[AutoSort] Error in Drop Sign Sort Thread");
             e.printStackTrace();
         }
-
         try {
             for(List<SortNetwork> networks : plugin.networks.values())
+                // Deposit Chest Sort
                 for(SortNetwork net : networks)
                     for(Entry<Block, NetworkItem> depChest : net.depositChests.entrySet()) {
                         if (depChest.getKey().getChunk().isLoaded()) {
@@ -98,29 +97,47 @@ public class SortTask implements Runnable {
         }
 
         try {
-            for(int i = 4; i > 1; i--) {
-                for(List<SortNetwork> networks : plugin.networks.values()) {
-                    for(SortNetwork net : networks) {
-                        for(SortChest chest : net.sortChests) {
-                            if (chest.block.getChunk().isLoaded()) {
-                                if (chest.priority == i && plugin.util.isValidInventoryBlock(chest.block)) {
-                                    maintainLavaFurnace(net, chest, chest.block);
-                                    if (chest.signText.contains("LAVAFURNACE")) continue; //TODO lavafurnace block
-                                    Inventory inv = Util.getInventory(chest.block);
-                                    if (inv != null) {
-                                        ItemStack[] items = inv.getContents();
-                                        ItemStack is;
-                                        for(int j = 0; j < items.length; j++) {
-                                            is = items[j];
-                                            if (is != null) {
-                                                if (net.sortItem(is, i - 1)) {
-                                                    items[j] = null;
+            if (AutoSort.keepPriority) { // Priority Resort
+                for(int i = 4; i > 1; i--) {
+                    for(List<SortNetwork> networks : plugin.networks.values()) {
+                        for(SortNetwork net : networks) {
+                            for(SortChest chest : net.sortChests) {
+                                if (chest.block.getChunk().isLoaded()) {
+                                    if (chest.priority == i && plugin.util.isValidInventoryBlock(chest.block)) {
+                                        if (chest.signText.contains("LAVAFURNACE")) continue; //TODO lavafurnace block
+                                        Inventory inv = Util.getInventory(chest.block);
+                                        if (inv != null) {
+                                            ItemStack[] items = inv.getContents();
+                                            ItemStack is;
+                                            for(int j = 0; j < items.length; j++) {
+                                                is = items[j];
+                                                if (is != null) {
+                                                    if (net.sortItem(is, i - 1)) {
+                                                        items[j] = null;
+                                                    }
                                                 }
                                             }
+                                            inv.setContents(items);
                                         }
-                                        inv.setContents(items);
                                     }
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            AutoSort.LOGGER.warning("[AutoSort] Error in Sort Chests Sort Thread");
+            e.printStackTrace();
+        }
+        try {
+            for(List<SortNetwork> networks : plugin.networks.values()) {
+                for(SortNetwork net : networks) {
+                    for(SortChest chest : net.sortChests) {
+                        if (chest.block.getChunk().isLoaded()) {
+                            if (plugin.util.isValidInventoryBlock(chest.block)) {
+                                maintainLavaFurnace(net, chest, chest.block);
                             }
                         }
                     }
@@ -129,6 +146,12 @@ public class SortTask implements Runnable {
         } catch (Exception e) {
             AutoSort.LOGGER.warning("[AutoSort] Error in Sort Chests Sort Thread");
             e.printStackTrace();
+        }
+        if (AutoSort.getDebug() == 10) {
+            if (tick != (System.currentTimeMillis() - timer)) {
+                tick = (System.currentTimeMillis() - timer);
+                System.out.println("Sort Time = " + tick + "ms");
+            }
         }
     }
 
@@ -155,13 +178,12 @@ public class SortTask implements Runnable {
                 waitTime = true;
                 previousTime = timer;
                 Inventory chest = net.findItemStack(new ItemStack(327));
-                if (chest instanceof Chest) {
-                    Inventory inv = chest;
+                if (chest != null) {
                     new ChestProcessing((LavaFurnace) LavaFurnace.plugin).fuelFurnaceWithLava(fo, f);
 
-                    int index = inv.first(Material.LAVA_BUCKET);
+                    int index = chest.first(Material.LAVA_BUCKET);
 
-                    inv.setItem(index, new ItemStack(Material.BUCKET));
+                    chest.setItem(index, new ItemStack(Material.BUCKET));
                 }
             }
         } catch (Exception e) {

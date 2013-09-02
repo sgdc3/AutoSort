@@ -1,6 +1,7 @@
 debug: 0
 worldRestrict: false
 fill-emptier-first: false
+keep-priority-sorted: false
 proximity: 0
 proximity-exceptions:
   exampleUser: 
