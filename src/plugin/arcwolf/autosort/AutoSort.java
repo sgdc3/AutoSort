@@ -23,7 +23,6 @@ import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -68,7 +67,6 @@ public class AutoSort extends JavaPlugin {
     public boolean worldRestrict = false;
     public static boolean emptiesFirst = true;
     public static boolean keepPriority = false;
-    private boolean v4Loaded = false;
 
     private Server server;
     private BukkitScheduler scheduler;
@@ -109,14 +107,7 @@ public class AutoSort extends JavaPlugin {
         getPermissionsPlugin();
         loadCustomGroups();
         loadInventoryBlocks();
-        v4Loaded = loadVersion4Save();
-        if (!v4Loaded) {
             loadVersion5Save();
-        }
-        else {
-            saveVersion5Network();
-            loadVersion5Save();
-        }
 
         pm.registerEvents(asListener, this);
         scheduler.scheduleSyncRepeatingTask(this, new SortTask(this), 5L, 10L);
@@ -349,113 +340,6 @@ public class AutoSort extends JavaPlugin {
                 }
             }
         }
-    }
-
-    private boolean loadVersion4Save() {
-        int version = getCustomConfig().getInt("version");
-        if (version == 4) {
-            ConfigurationSection netsSec = getCustomConfig().getConfigurationSection("networks");
-            if (netsSec != null) {
-                for(String netName : netsSec.getKeys(false)) {
-                    ConfigurationSection netSec = netsSec.getConfigurationSection(netName);
-                    if (netSec != null) {
-                        String owner = netSec.getString("owner");
-                        SortNetwork net = new SortNetwork(owner, netName, "");
-                        net.members = netSec.getStringList("members");
-                        ConfigurationSection chests = netSec.getConfigurationSection("chests");
-                        if (chests != null) {
-                            for(String chestLocStr : chests.getKeys(false)) {
-                                ConfigurationSection cSec = chests.getConfigurationSection(chestLocStr);
-                                String[] chestData = chestLocStr.split(",");
-                                World world = getServer().getWorld(chestData[0].replace("(dot)", "."));
-                                if (world != null) {
-                                    if (!net.world.equals(world.getName())) {
-                                        net.world = world.getName();
-                                    }
-                                    Location chestLoc = new Location(world, Integer.parseInt(chestData[1]), Integer.parseInt(chestData[2]), Integer.parseInt(chestData[3]));
-                                    Block chest = chestLoc.getBlock();
-                                    String signLocStr = cSec.getString("sign");
-                                    String[] signData = signLocStr.split(",");
-                                    Location signLoc = new Location(world, Integer.parseInt(signData[1]), Integer.parseInt(signData[2]), Integer.parseInt(signData[3]));
-                                    if (signLoc.getBlock().getState() instanceof Sign) {
-                                        Block sign = signLoc.getBlock();
-                                        String signText = cSec.getString("signText");
-                                        int priority = cSec.getInt("priority");
-                                        boolean disregardDamage = cSec.getBoolean("disregardDamage");
-                                        net.sortChests.add(new SortChest(chest, sign, signText, priority, disregardDamage));
-                                    }
-                                    else {
-                                        LOGGER.warning(pluginName + ": SortChest Sign Didnt exist at " + signLoc.getBlockX() + "," + signLoc.getBlockY() + "," + signLoc.getBlockZ() + ":" + signLoc.getWorld().getName());
-                                    }
-                                }
-                                else {
-                                    LOGGER.warning(pluginName + ": Null world: " + chestData[0] + " . Does this world still exist?");
-                                }
-                            }
-                        }
-                        if (networks.containsKey(owner)) {
-                            networks.get(owner).add(net);
-                        }
-                        else {
-                            List<SortNetwork> nets = new ArrayList<SortNetwork>();
-                            nets.add(net);
-                            networks.put(owner, nets);
-                        }
-                    }
-                }
-            }
-            ConfigurationSection chestsSec = getCustomConfig().getConfigurationSection("dropChests");
-            if (chestsSec != null) {
-                Map<String, Object> dchests = chestsSec.getValues(false);
-                for(String key : dchests.keySet()) {
-                    String[] data = key.split(",");
-                    Location loc = new Location(getServer().getWorld(data[0].replace("(dot)", ".")), Integer.parseInt(data[1]), Integer.parseInt(data[2]), Integer.parseInt(data[3]));
-                    if (loc.getWorld() == null) {
-                        LOGGER.warning(pluginName + ": Null drop chest location! " + key + " Does this world still exist?");
-                    }
-                    else {
-                        SortNetwork network = findV4Network((String) dchests.get(key));
-                        Block sign = findSignFromChest(loc.getBlock());
-                        if (sign == null) {
-                            LOGGER.warning(pluginName + ": Failed to find sign for deposit chest");
-                            break;
-                        }
-                        else if (network == null) {
-                            LOGGER.warning(pluginName + ": Could not find network to add dropchest to.");
-                        }
-                        NetworkItem netItem = new NetworkItem(network, loc.getBlock(), sign);
-                        network.depositChests.put(loc.getBlock(), netItem);
-                    }
-                }
-            }
-            chestsSec = getCustomConfig().getConfigurationSection("withdrawChests");
-            if (chestsSec != null) {
-                Map<String, Object> wchests = chestsSec.getValues(false);
-                for(String key : wchests.keySet()) {
-                    String[] data = key.split(",");
-                    Location loc = new Location(getServer().getWorld(data[0].replace("(dot)", ".")), Integer.parseInt(data[1]), Integer.parseInt(data[2]), Integer.parseInt(data[3]));
-                    if (loc.getWorld() == null) {
-                        LOGGER.warning(pluginName + ": Null Withdraw chest location! " + key + " Does this world still exist?");
-                    }
-                    else {
-                        SortNetwork network = findV4Network((String) wchests.get(key));
-                        Block sign = findSignFromChest(loc.getBlock());
-                        if (sign == null) {
-                            LOGGER.warning(pluginName + ": Failed to find sign for Withdraw chest");
-                            break;
-                        }
-                        else if (network == null) {
-                            LOGGER.warning(pluginName + ": Could not find network to add withdraw chest to");
-                            break;
-                        }
-                        NetworkItem netItem = new NetworkItem(network, loc.getBlock(), sign);
-                        network.withdrawChests.put(loc.getBlock(), netItem);
-                    }
-                }
-            }
-            return true;
-        }
-        return false;
     }
 
     public void loadVersion5Save() {
@@ -773,13 +657,6 @@ public class AutoSort extends JavaPlugin {
     public void saveVersion5Network() {
         cleanupNetwork();
 
-        if (v4Loaded) {
-            customConfigFile.renameTo(new File(getDataFolder(), "v4networks.yml"));
-            customConfigFile = null;
-            reloadCustomConfig();
-            v4Loaded = false;
-        }
-
         getCustomConfig().set("version", SAVEVERSION);
 
         // Save Owners
@@ -880,15 +757,6 @@ public class AutoSort extends JavaPlugin {
         }
     }
 
-    // Find old version networks
-    private SortNetwork findV4Network(String netName) {
-        for(List<SortNetwork> sn : networks.values()) {
-            for(SortNetwork net : sn)
-                if (net.netName.equals(netName)) { return net; }
-        }
-        return null;
-    }
-
     // Find a network
     public SortNetwork findNetwork(String owner, String netName) {
         if (!networks.containsKey(owner)) return null;
@@ -918,94 +786,6 @@ public class AutoSort extends JavaPlugin {
             else if (sign.getLine(0).startsWith("#")) {
                 for(NetworkItem ni : network.withdrawChests.values()) {
                     if (ni.sign.equals(signBlock)) return ni;
-                }
-            }
-        }
-        return null;
-    }
-
-    private Block findSignFromChest(Block chest) {
-        BlockFace[] surrounding = { BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.NORTH_EAST, BlockFace.EAST, BlockFace.SOUTH_EAST, BlockFace.SOUTH, BlockFace.SOUTH_WEST, BlockFace.WEST, BlockFace.NORTH_WEST };
-        for(BlockFace face : surrounding) {
-            Block maybeSign = chest.getRelative(face);
-            if (maybeSign.getType().equals(Material.WALL_SIGN)) {
-                Block sign = maybeSign;
-                String[] lines = ((Sign) sign.getState()).getLines();
-                if (lines[0].startsWith("*") || lines[0].startsWith("#")) {
-                    String[] options = { lines[3].toUpperCase() };
-                    if (lines[3].contains(" ")) {
-                        options = lines[3].toUpperCase().split(" ");
-                    }
-                    BlockFace dir = BlockFace.DOWN;
-                    for(String opt : options) {
-                        if (opt.startsWith("D:")) {
-                            String dStr = opt.split(":")[1];
-                            int signData = sign.getData();
-                            dir = null;
-                            if (dStr.equalsIgnoreCase("L")) {
-                                switch (signData) {
-                                    case 2:
-                                        dir = BlockFace.EAST;
-                                    case 3:
-                                        dir = BlockFace.WEST;
-                                    case 4:
-                                        dir = BlockFace.NORTH;
-                                    case 5:
-                                        dir = BlockFace.SOUTH;
-                                }
-                            }
-                            else if (dStr.equalsIgnoreCase("R")) {
-                                switch (signData) {
-                                    case 2:
-                                        dir = BlockFace.WEST;
-                                    case 3:
-                                        dir = BlockFace.EAST;
-                                    case 4:
-                                        dir = BlockFace.SOUTH;
-                                    case 5:
-                                        dir = BlockFace.NORTH;
-                                }
-                            }
-                            else if (dStr.equalsIgnoreCase("N")) {
-                                dir = BlockFace.NORTH;
-                            }
-                            else if (dStr.equalsIgnoreCase("NE")) {
-                                dir = BlockFace.NORTH_EAST;
-                            }
-                            else if (dStr.equalsIgnoreCase("E")) {
-                                dir = BlockFace.EAST;
-                            }
-                            else if (dStr.equalsIgnoreCase("SE")) {
-                                dir = BlockFace.SOUTH_EAST;
-                            }
-                            else if (dStr.equalsIgnoreCase("S")) {
-                                dir = BlockFace.SOUTH;
-                            }
-                            else if (dStr.equalsIgnoreCase("SW")) {
-                                dir = BlockFace.SOUTH_WEST;
-                            }
-                            else if (dStr.equalsIgnoreCase("W")) {
-                                dir = BlockFace.WEST;
-                            }
-                            else if (dStr.equalsIgnoreCase("NW")) {
-                                dir = BlockFace.NORTH_WEST;
-                            }
-                            else if (dStr.equalsIgnoreCase("U")) {
-                                dir = BlockFace.UP;
-                            }
-                            else if (dStr.equalsIgnoreCase("D")) {
-                                dir = BlockFace.DOWN;
-                            }
-                            if (dir == null) { return null; }
-                        }
-                    }
-                    Block maybeChest = sign.getRelative(dir);
-                    if (chest.equals(maybeChest)) {
-                        return sign;
-                    }
-                    else {
-                        LOGGER.info(pluginName + ": Found " + maybeChest.getType().name() + " needed " + chest.getType().name());
-                    }
                 }
             }
         }

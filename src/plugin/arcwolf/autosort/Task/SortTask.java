@@ -177,7 +177,7 @@ public class SortTask implements Runnable {
             if (lfp.datawriter.isSourceChestFuel() && fo.power < 1 && fSA > 0 && fFA == 0 && burnTime <= 0 && fPA == 0 && !waitTime) { // Keep Furnaces Fueled
                 waitTime = true;
                 previousTime = timer;
-                Inventory chest = net.findItemStack(new ItemStack(327));
+                Inventory chest = net.findItemStack(new ItemStack(Material.LAVA_BUCKET));
                 if (chest != null) {
                     new ChestProcessing((LavaFurnace) LavaFurnace.plugin).fuelFurnaceWithLava(fo, f);
 

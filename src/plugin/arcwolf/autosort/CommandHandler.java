@@ -2,6 +2,7 @@ package plugin.arcwolf.autosort;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -138,14 +139,26 @@ public class CommandHandler {
             if (args.length > 1) {
                 String groupName = args[0].toUpperCase();
                 if (AutoSort.customMatGroups.containsKey(groupName)) {
-                    List<ItemStack> matList = new ArrayList<ItemStack>();
+                    List<ItemStack> matList = AutoSort.customMatGroups.get(groupName);
                     for(int i = 1; i < args.length; i++) {
                         String mat = args[i];
                         if (Util.parseMaterialID(mat) != null) {
                             matList.add(Util.parseMaterialID(mat));
                         }
                         else {
-                            sender.sendMessage(ChatColor.RED + "Invalid Material: " + mat);
+                            if (args[i].startsWith("-")) {
+                                Iterator<ItemStack> itms = matList.iterator();
+                                while (itms.hasNext()) {
+                                    ItemStack item = itms.next();
+                                    String modArg = args[i].substring(1);
+                                    ItemStack parsedItem = Util.parseMaterialID(modArg);
+                                    if (parsedItem == null) continue;
+                                    if (item.getTypeId() == parsedItem.getTypeId() && item.getDurability() == parsedItem.getDurability()) itms.remove();
+                                }
+                            }
+                            else {
+                                sender.sendMessage(ChatColor.RED + "Invalid Material: " + mat);
+                            }
                         }
                     }
                     List<String> ids = new ArrayList<String>();

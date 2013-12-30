@@ -338,7 +338,7 @@ public class AutoSortListener implements Listener {
                         }
                     }
                     else {
-                        if(plugin.util.isValidWithdrawBlock(storageBlock) && !(storageBlock.getState() instanceof InventoryHolder)){
+                        if (plugin.util.isValidWithdrawBlock(storageBlock) && !(storageBlock.getState() instanceof InventoryHolder)) {
                             player.sendMessage(ChatColor.RED + "This inventory block is not registered with Craftbukkit.");
                             player.sendMessage(ChatColor.RED + "It will not fire inventory events and so can NOT be used as a withdraw chest.");
                             AutoSort.LOGGER.warning(plugin.getName() + ": Block Id " + storageBlock.getTypeId() + " is not a valid withdraw chest.");
@@ -847,7 +847,8 @@ public class AutoSortListener implements Listener {
 
     private Block getDirection(String dStr, Block signBlock) {
         Location loc = signBlock.getLocation();
-        int signData = signBlock.getData();
+        org.bukkit.material.Sign sign = (org.bukkit.material.Sign) signBlock.getState().getData();
+        BlockFace attached = ((org.bukkit.material.Sign) signBlock.getState().getData()).getAttachedFace();
         int x = 0;
         int y = 0;
         int z = 0;
@@ -856,65 +857,65 @@ public class AutoSortListener implements Listener {
         for(int i = 0; i < dStr.length(); i++) {
             dir = new Character(dStr.charAt(i)).toString();
             if (dir.equalsIgnoreCase("L")) {
-                switch (signData) {
-                    case 2:
+                switch (attached) {
+                    case SOUTH:
                         x++;
                         break;
-                    case 3:
+                    case NORTH:
                         x--;
                         break;
-                    case 4:
+                    case EAST:
                         z--;
                         break;
-                    case 5:
+                    case WEST:
                         z++;
                         break;
                 }
             }
             if (dir.equalsIgnoreCase("R")) {
-                switch (signData) {
-                    case 2:
+                switch (attached) {
+                    case SOUTH:
                         x--;
                         break;
-                    case 3:
+                    case NORTH:
                         x++;
                         break;
-                    case 4:
+                    case EAST:
                         z++;
                         break;
-                    case 5:
+                    case WEST:
                         z--;
                         break;
                 }
             }
             if (dir.equalsIgnoreCase("F")) {
-                switch (signData) {
-                    case 2:
+                switch (attached) {
+                    case SOUTH:
                         z++;
                         break;
-                    case 3:
+                    case NORTH:
                         z--;
                         break;
-                    case 4:
+                    case EAST:
                         x++;
                         break;
-                    case 5:
+                    case WEST:
                         x--;
                         break;
                 }
             }
             if (dir.equalsIgnoreCase("B")) {
-                switch (signData) {
-                    case 2:
+                switch (attached) {
+                    case SOUTH:
                         z--;
                         break;
-                    case 3:
+                    case NORTH:
                         z++;
                         break;
-                    case 4:
+                    case EAST:
                         x--;
                         break;
-                    case 5:
+                    case WEST:
                         x++;
                         break;
                 }

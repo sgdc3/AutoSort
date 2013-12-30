@@ -220,7 +220,7 @@ public class Util {
     public boolean makeWithdraw(Player player, CustomPlayer settings) {
         int wantedAmount = settings.wantedAmount;
         int wantedItem = settings.inventory.get(settings.currentItemIdx).itemId;
-        int wantedItemId = settings.inventory.get(settings.currentItemIdx).itemData;
+        int wantedItemData = settings.inventory.get(settings.currentItemIdx).itemData;
         Map<Integer, ItemStack> couldntFit = null;
         Inventory networkInv;
         for(SortChest chest : settings.sortNetwork.sortChests) {
@@ -232,7 +232,7 @@ public class Util {
             for(int idx = 0; idx < networkInv.getSize(); idx++) {
                 ItemStack networkItem = networkInv.getItem(idx);
                 if (networkItem != null) {
-                    if (networkItem.getTypeId() == wantedItem && networkItem.getData().getData() == wantedItemId) {
+                    if (networkItem.getTypeId() == wantedItem && networkItem.getData().getData() == wantedItemData) {
                         int foundAmount = networkItem.getAmount();
                         Inventory withdrawInv = settings.withdrawInventory;
                         ItemStack stack = networkItem;
@@ -296,8 +296,8 @@ public class Util {
             e.printStackTrace();
             sender.sendMessage(ChatColor.RED + "---------------------------------------");
         } finally {
-            settings.withdrawInventory.setItem(0, new ItemStack(0));
-            settings.withdrawInventory.setItem(8, new ItemStack(0));
+            settings.withdrawInventory.setItem(0, new ItemStack(Material.AIR));
+            settings.withdrawInventory.setItem(8, new ItemStack(Material.AIR));
         }
     }
 
