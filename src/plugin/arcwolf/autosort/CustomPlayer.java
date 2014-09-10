@@ -8,6 +8,7 @@ import java.util.Map;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
 import plugin.arcwolf.autosort.Network.SortNetwork;
 
@@ -48,9 +49,9 @@ public class CustomPlayer {
         sortNetwork = null;
     }
 
-    public int findItem(int itemId, int itemData) {
+    public int findItem(ItemStack item) {
         for(int i = 0; i < inventory.size(); i++) {
-            if (inventory.get(i).itemId == itemId && inventory.get(i).itemData == itemData) return i;
+            if (inventory.get(i).item.equals(item)) return i;
         }
         return -1;
     }

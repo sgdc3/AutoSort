@@ -49,7 +49,15 @@ public class SortTask implements Runnable {
                     World world = item.getWorld();
                     Block dropSpot = world.getBlockAt(item.getLocation());
                     BlockFace[] surrounding = { BlockFace.SELF, BlockFace.NORTH, BlockFace.NORTH_EAST, BlockFace.EAST, BlockFace.SOUTH_EAST, BlockFace.SOUTH, BlockFace.SOUTH_WEST, BlockFace.WEST, BlockFace.NORTH_WEST };
+                    Block hopper;
                     for(BlockFace face : surrounding) {
+                        hopper = dropSpot.getRelative(BlockFace.DOWN);
+                        if (hopper.getType().equals(Material.HOPPER)){
+                            break;
+                        }
+                        else if(hopper.getRelative(face).getType().equals(Material.HOPPER)){
+                            break;
+                        }
                         if (dropSpot.getRelative(face).getType().equals(Material.SIGN_POST)) {
                             Sign sign = (Sign) dropSpot.getRelative(face).getState();
                             sortDropSign(item, sign);

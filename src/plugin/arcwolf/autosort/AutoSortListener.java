@@ -1,7 +1,6 @@
 package plugin.arcwolf.autosort;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +63,15 @@ public class AutoSortListener implements Listener {
             if (hopperDropperStopper(blocksToTest, player)) {
                 event.setCancelled(true);
                 return;
+            }
+            BlockFace[] surrounding = { BlockFace.SELF, BlockFace.NORTH, BlockFace.NORTH_EAST, BlockFace.EAST, BlockFace.SOUTH_EAST, BlockFace.SOUTH, BlockFace.SOUTH_WEST, BlockFace.WEST, BlockFace.NORTH_WEST };
+            Block sign;
+            for(BlockFace face : surrounding) {
+                sign = block.getRelative(BlockFace.UP).getRelative(face); 
+                if (sign.getType().equals(Material.SIGN_POST) && plugin.allNetworkBlocks.containsKey(sign)) {
+                    event.setCancelled(true);
+                    return;
+                }
             }
         }
         else if (block.getType().equals(Material.DROPPER)) {
@@ -170,7 +178,7 @@ public class AutoSortListener implements Listener {
         settings.playerName = player.getName();
         settings.sortNetwork = sortNetwork;
         if (plugin.util.updateInventoryList(player, settings)) {
-            Collections.sort(settings.inventory, new IntegerComparator());
+            //Collections.sort(settings.inventory, new IntegerComparator());
             plugin.util.updateChestInventory(player, settings);
         }
         else {

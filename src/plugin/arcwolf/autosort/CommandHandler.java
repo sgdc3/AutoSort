@@ -934,7 +934,7 @@ public class CommandHandler {
         settings.sortNetwork = network;
         settings.withdrawInventory = Bukkit.createInventory(null, 54, netName + " network inventory");
         if (plugin.util.updateInventoryList(player, settings)) {
-            Collections.sort(settings.inventory, new IntegerComparator());
+            Collections.sort(settings.inventory, new StringComparator());
             plugin.util.updateChestInventory(player, settings);
             player.openInventory(settings.withdrawInventory);
         }

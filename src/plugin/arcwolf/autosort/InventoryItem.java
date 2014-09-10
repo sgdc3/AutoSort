@@ -1,14 +1,14 @@
 package plugin.arcwolf.autosort;
 
+import org.bukkit.inventory.ItemStack;
+
 public class InventoryItem {
 
-    public int itemId;
-    public int itemData;
+    public ItemStack item;
     public int amount;
 
-    public InventoryItem(int itemId, int itemData, int amount) {
-        this.itemId = itemId;
-        this.itemData = itemData;
+    public InventoryItem(ItemStack item, int amount) {
+        this.item = item;
         this.amount = amount;
     }
 }

@@ -29,6 +29,7 @@ public class Util {
         Util.plugin = plugin;
     }
 
+    
     public boolean isValidInventoryBlock(Block block) {
         return isValidInventoryBlock(null, block, false);
     }
@@ -85,7 +86,7 @@ public class Util {
             return false;
         }
     }
-
+    
     public static ItemStack parseMaterialID(String str) {
         if (str != null) {
             if (str.contains(":")) {
@@ -219,8 +220,7 @@ public class Util {
     // true is successful
     public boolean makeWithdraw(Player player, CustomPlayer settings) {
         int wantedAmount = settings.wantedAmount;
-        int wantedItem = settings.inventory.get(settings.currentItemIdx).itemId;
-        int wantedItemData = settings.inventory.get(settings.currentItemIdx).itemData;
+        ItemStack wantedItem = settings.inventory.get(settings.currentItemIdx).item;
         Map<Integer, ItemStack> couldntFit = null;
         Inventory networkInv;
         for(SortChest chest : settings.sortNetwork.sortChests) {
@@ -232,7 +232,7 @@ public class Util {
             for(int idx = 0; idx < networkInv.getSize(); idx++) {
                 ItemStack networkItem = networkInv.getItem(idx);
                 if (networkItem != null) {
-                    if (networkItem.getTypeId() == wantedItem && networkItem.getData().getData() == wantedItemData) {
+                    if (networkItem.equals(wantedItem)) {
                         int foundAmount = networkItem.getAmount();
                         Inventory withdrawInv = settings.withdrawInventory;
                         ItemStack stack = networkItem;
@@ -264,7 +264,7 @@ public class Util {
     }
 
     public void updateChestInventory(Player player, CustomPlayer settings) {
-        ItemStack dummyItem = new ItemStack(373, 1);
+        ItemStack dummyItem = new ItemStack(Material.POTION, 1);
         try {
             if (settings.block != null && !settings.block.getChunk().isLoaded())
                 settings.block.getChunk().load();
@@ -323,14 +323,12 @@ public class Util {
             if (inv == null) continue;
             for(ItemStack item : inv) {
                 if (item != null) {
-                    int itemId = item.getTypeId();
-                    int itemData = item.getData().getData();
-                    int index = settings.findItem(itemId, itemData);
+                    int index = settings.findItem(item);
                     if (index != -1) {
                         settings.inventory.get(index).amount += item.getAmount();
                     }
                     else {
-                        settings.inventory.add(new InventoryItem(itemId, itemData, item.getAmount()));
+                        settings.inventory.add(new InventoryItem(item, item.getAmount()));
                     }
                 }
             }
