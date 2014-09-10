@@ -43,7 +43,7 @@ public class SortTask implements Runnable {
             waitTime = false;
         }
         try {
-            for(Item item : plugin.items) { // Depost Signs Sort
+            for(Item item : plugin.items) { // Deposit Signs Sort
                 if (item.getVelocity().equals(new Vector(0, 0, 0))) {
                     plugin.stillItems.add(item);
                     World world = item.getWorld();
@@ -61,6 +61,7 @@ public class SortTask implements Runnable {
                         if (dropSpot.getRelative(face).getType().equals(Material.SIGN_POST)) {
                             Sign sign = (Sign) dropSpot.getRelative(face).getState();
                             sortDropSign(item, sign);
+                            break;
                         }
                     }
                 }
