@@ -372,7 +372,6 @@ public class AutoSort extends JavaPlugin {
                     LOGGER.warning(pluginName + ": could not resolve UUID for " + owner + " dropped from database");
                     continue;
                 }
-                System.out.println("Found " + owner + " ID = " + ownerId);
                 namesToUUID.put(owner, ownerId);
             }
             for(String netNameSec : newnet.getKeys(false)) {
@@ -387,7 +386,6 @@ public class AutoSort extends JavaPlugin {
                             LOGGER.warning(pluginName + ": could not resolve UUID for " + name + " dropped from members of " + net.netName);
                             continue;
                         }
-                        System.out.println("Found " + name + " ID = " + memberId);
                         namesToUUID.put(name, memberId);
                     }
                 }
