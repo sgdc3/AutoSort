@@ -761,8 +761,8 @@ public class AutoSort extends JavaPlugin {
                     }
                 }
             }
+            UUIDLoaded = true;
         }
-        UUIDLoaded = true;
     }
 
     public boolean cleanupNetwork() {
