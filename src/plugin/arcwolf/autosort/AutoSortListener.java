@@ -43,8 +43,8 @@ import org.bukkit.inventory.ItemStack;
 import plugin.arcwolf.autosort.Network.NetworkItem;
 import plugin.arcwolf.autosort.Network.SortChest;
 import plugin.arcwolf.autosort.Network.SortNetwork;
-import plugin.arcwolf.lavafurnace.FurnaceObject;
-import plugin.arcwolf.lavafurnace.LavaFurnace;
+//import plugin.arcwolf.lavafurnace.FurnaceObject;
+//import plugin.arcwolf.lavafurnace.LavaFurnace;
 
 public class AutoSortListener implements Listener {
 
@@ -860,7 +860,6 @@ public class AutoSortListener implements Listener {
 
     private Block getDirection(String dStr, Block signBlock) {
         Location loc = signBlock.getLocation();
-        org.bukkit.material.Sign sign = (org.bukkit.material.Sign) signBlock.getState().getData();
         BlockFace attached = ((org.bukkit.material.Sign) signBlock.getState().getData()).getAttachedFace();
         int x = 0;
         int y = 0;

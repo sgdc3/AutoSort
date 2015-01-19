@@ -538,7 +538,6 @@ public class CommandHandler {
                     sender.sendMessage(ChatColor.YELLOW + "Public networks allow everyone already.");
                     return;
                 }
-                String owner = args[0];
                 UUID ownerId = getPlayerUUID(args[0], sender);
                 if (ownerId == null) return;
                 SortNetwork net = plugin.findNetwork(ownerId, netName);
@@ -574,7 +573,6 @@ public class CommandHandler {
                     sender.sendMessage(ChatColor.YELLOW + "Public networks allow everyone.");
                     return;
                 }
-                String owner = args[0];
                 UUID ownerId = getPlayerUUID(args[0], sender);
                 if (ownerId == null) return;
                 SortNetwork net = plugin.findNetwork(ownerId, netName);
@@ -710,7 +708,6 @@ public class CommandHandler {
             boolean doList = false;
             SortNetwork network = null;
             if (args.length == 2) { // /listasmembers <ownerName> <netName>
-                String owner = args[0];
                 UUID uuid = getPlayerUUID(args[0], sender);
                 if (uuid == null) return;
                 String netName = args[1];
