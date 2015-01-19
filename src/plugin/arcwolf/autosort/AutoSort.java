@@ -421,7 +421,6 @@ public class AutoSort extends JavaPlugin {
                             ConfigurationSection newnet = netSec.getConfigurationSection("NetworkNames");
                             UUID ownerId = namesToUUID.get(owner);
                             if (ownerId == null) {
-                                LOGGER.warning(pluginName + ": could not resolve UUID for " + owner + " dropped from database");
                                 continue;
                             }
                             for(String netNameSec : newnet.getKeys(false)) {
@@ -432,7 +431,6 @@ public class AutoSort extends JavaPlugin {
                                 for(String name : memberNames) {
                                     UUID memberId = namesToUUID.get(name);
                                     if (memberId == null) {
-                                        LOGGER.warning(pluginName + ": could not resolve UUID for " + name + " dropped from members of " + net.netName);
                                         continue;
                                     }
                                     memberUUIDs.add(memberId);
