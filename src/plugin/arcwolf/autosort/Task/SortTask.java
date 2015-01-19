@@ -7,7 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.Furnace;
+//import org.bukkit.block.Furnace;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.Inventory;
@@ -19,11 +19,11 @@ import plugin.arcwolf.autosort.Util;
 import plugin.arcwolf.autosort.Network.NetworkItem;
 import plugin.arcwolf.autosort.Network.SortChest;
 import plugin.arcwolf.autosort.Network.SortNetwork;
-import plugin.arcwolf.lavafurnace.ChestHelper;
-import plugin.arcwolf.lavafurnace.ChestProcessing;
-import plugin.arcwolf.lavafurnace.FurnaceHelper;
-import plugin.arcwolf.lavafurnace.FurnaceObject;
-import plugin.arcwolf.lavafurnace.LavaFurnace;
+//import plugin.arcwolf.lavafurnace.ChestHelper;
+//import plugin.arcwolf.lavafurnace.ChestProcessing;
+//import plugin.arcwolf.lavafurnace.FurnaceHelper;
+//import plugin.arcwolf.lavafurnace.FurnaceObject;
+//import plugin.arcwolf.lavafurnace.LavaFurnace;
 
 public class SortTask implements Runnable {
 
@@ -38,6 +38,7 @@ public class SortTask implements Runnable {
     }
 
     public void run() {
+        if (!plugin.UUIDLoaded) return;
         timer = System.currentTimeMillis();
         if (waitTime && timer - previousTime > 5000) {
             waitTime = false;
@@ -52,10 +53,10 @@ public class SortTask implements Runnable {
                     Block hopper;
                     for(BlockFace face : surrounding) {
                         hopper = dropSpot.getRelative(BlockFace.DOWN);
-                        if (hopper.getType().equals(Material.HOPPER)){
+                        if (hopper.getType().equals(Material.HOPPER)) {
                             break;
                         }
-                        else if(hopper.getRelative(face).getType().equals(Material.HOPPER)){
+                        else if (hopper.getRelative(face).getType().equals(Material.HOPPER)) {
                             break;
                         }
                         if (dropSpot.getRelative(face).getType().equals(Material.SIGN_POST)) {
@@ -140,7 +141,9 @@ public class SortTask implements Runnable {
             AutoSort.LOGGER.warning("[AutoSort] Error in Sort Chests Sort Thread");
             e.printStackTrace();
         }
+        /* LavaFurnace is not 1.8 compat. Code disabled.
         try {
+            if (plugin.getServer().getPluginManager().getPlugin("LavaFurnace") == null) return;
             for(List<SortNetwork> networks : plugin.networks.values()) {
                 for(SortNetwork net : networks) {
                     for(SortChest chest : net.sortChests) {
@@ -156,6 +159,7 @@ public class SortTask implements Runnable {
             AutoSort.LOGGER.warning("[AutoSort] Error in Sort Chests Sort Thread");
             e.printStackTrace();
         }
+        */
         if (AutoSort.getDebug() == 10) {
             if (tick != (System.currentTimeMillis() - timer)) {
                 tick = (System.currentTimeMillis() - timer);
@@ -165,9 +169,9 @@ public class SortTask implements Runnable {
     }
 
     // TODO Lavafurnace integration
+    /*
     private void maintainLavaFurnace(SortNetwork net, SortChest sortChest, Block cblock) {
         try {
-            if (plugin.getServer().getPluginManager().getPlugin("LavaFurnace") == null) return;
             if (!sortChest.block.getChunk().isLoaded())
                 sortChest.block.getChunk().load();
             if (!(sortChest.sign.getType().equals(Material.WALL_SIGN))) return;
@@ -200,6 +204,7 @@ public class SortTask implements Runnable {
             e.printStackTrace();
         }
     }
+    */
 
     private void sortDropSign(Item item, Sign sign) {
         if (sign.getLine(0).startsWith("*")) {

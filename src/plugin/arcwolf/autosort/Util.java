@@ -3,6 +3,8 @@ package plugin.arcwolf.autosort;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 import java.util.Map;
+
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -29,6 +31,19 @@ public class Util {
         Util.plugin = plugin;
     }
 
+    /**
+     * Will find the exact player and is case sensitive
+     * 
+     * @param name - The players name
+     * @return Player object or null if not found
+     */
+    @SuppressWarnings("deprecation")
+    public static Player getPlayer(String name) {
+        for(Player test : Bukkit.matchPlayer(name)) {
+            if (test.getName().equals(name)) return test;
+        }
+        return null;
+    }
     
     public boolean isValidInventoryBlock(Block block) {
         return isValidInventoryBlock(null, block, false);

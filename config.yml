@@ -1,4 +1,8 @@
 debug: 0
+Profile_URL: https://api.mojang.com/profiles/minecraft
+online_UUID_Check: true
+HTTPConnectTimeout: 15000
+HTTPReadTimeout: 15000
 worldRestrict: false
 fill-emptier-first: false
 keep-priority-sorted: false

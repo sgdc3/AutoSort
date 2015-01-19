@@ -1,9 +1,9 @@
 package plugin.arcwolf.autosort;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -14,12 +14,12 @@ import plugin.arcwolf.autosort.Network.SortNetwork;
 
 public class CustomPlayer {
 
-    public static Map<String, CustomPlayer> playerSettings = new HashMap<String, CustomPlayer>();
+    public static ConcurrentHashMap<String, CustomPlayer> playerSettings = new ConcurrentHashMap<String, CustomPlayer>();
     public int startItemIdx = 0; // Current Start index for chest withdraw
     public int currentItemIdx = 0; // Current item to start a chest withdraw on.
     public int wantedAmount = 1; // Current amount for a withdraw
     public String netName = ""; // This networks name
-    public String owner = ""; // This networks owner
+    public UUID owner = null; // This networks owner
     public String playerName = ""; // The players name
     public Block block = null; // The withdraw chest block
     public Inventory withdrawInventory = null; // The inventory for withdrawing
@@ -27,13 +27,8 @@ public class CustomPlayer {
     public SortNetwork sortNetwork = null;
 
     public static CustomPlayer getSettings(Player player) {
-        
-        CustomPlayer settings = (CustomPlayer) playerSettings.get(player.getName());
-        if (settings == null) {
-            playerSettings.put(player.getName(), new CustomPlayer());
-            settings = (CustomPlayer) playerSettings.get(player.getName());
-        }
-        return settings;
+        playerSettings.putIfAbsent(player.getName(), new CustomPlayer());
+        return playerSettings.get(player.getName());
     }
 
     public void clearPlayer() {
@@ -41,7 +36,7 @@ public class CustomPlayer {
         startItemIdx = 0;
         wantedAmount = 1;
         netName = "";
-        owner = "";
+        owner = null;
         playerName = "";
         block = null;
         withdrawInventory = null;

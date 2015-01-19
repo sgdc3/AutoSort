@@ -15,8 +15,8 @@ public class CleanupTask implements Runnable {
     }
 
     public void run() {
-        if (server.getOnlinePlayers().length > 0) {
-            plugin.saveVersion5Network();
+        if (server.getOnlinePlayers().size() > 0) {
+            plugin.saveVersion6Network();
         }
     }
 }

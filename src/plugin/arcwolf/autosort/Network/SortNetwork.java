@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -36,8 +37,8 @@ public class SortNetwork {
      *      Hopper
      */
 
-    public String owner = "";
-    public List<String> members = new ArrayList<String>();
+    public UUID owner = null;
+    public List<UUID> members = new ArrayList<UUID>();
     public String netName = "";
     public String world = "";
 
@@ -52,7 +53,8 @@ public class SortNetwork {
      * @param netName
      * @param world
      */
-    public SortNetwork(String owner, String netName, String world) {
+    
+    public SortNetwork(UUID owner, String netName, String world) {
         this.owner = owner;
         this.netName = netName;
         this.world = world;
