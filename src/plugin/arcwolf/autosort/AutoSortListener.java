@@ -1,11 +1,10 @@
 package plugin.arcwolf.autosort;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -49,7 +48,7 @@ import plugin.arcwolf.autosort.Network.SortNetwork;
 public class AutoSortListener implements Listener {
 
     private AutoSort plugin;
-    public Map<String, SortNetwork> chestLock = new Hashtable<String, SortNetwork>();
+    public ConcurrentHashMap<String, SortNetwork> chestLock = new ConcurrentHashMap<String, SortNetwork>();
 
     public AutoSortListener(AutoSort autoSort) {
         plugin = autoSort;

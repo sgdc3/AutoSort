@@ -239,7 +239,7 @@ public class Util {
         Map<Integer, ItemStack> couldntFit = null;
         Inventory networkInv;
         for(SortChest chest : settings.sortNetwork.sortChests) {
-            if (chest.signText.contains("LAVAFURNACE")) continue; // TODO Lavafurnace block
+            //if (chest.signText.contains("LAVAFURNACE")) continue; // TODO Lavafurnace block
             if (!chest.block.getChunk().isLoaded())
                 chest.block.getChunk().load();
             networkInv = getInventory(chest.block);
@@ -333,7 +333,7 @@ public class Util {
 
     public boolean updateInventoryList(Player player, CustomPlayer settings) {
         for(SortChest chest : settings.sortNetwork.sortChests) {
-            if (chest.signText.contains("LAVAFURNACE")) continue; //TODO lavafurnace block
+            //if (chest.signText.contains("LAVAFURNACE")) continue; //TODO lavafurnace block
             Inventory inv = Util.getInventory(chest.block);
             if (inv == null) continue;
             for(ItemStack item : inv) {
