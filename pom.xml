@@ -78,8 +78,6 @@
 					<include>plugin.yml</include>
 				</includes>
 			</resource>
-		</resources>
-		<resources>
 			<resource>
 				<directory>${project.basedir}</directory>
 				<filtering>true</filtering>
@@ -87,8 +85,6 @@
 					<include>config.yml</include>
 				</includes>
 			</resource>
-		</resources>
-		<resources>
 			<resource>
 				<directory>${project.basedir}</directory>
 				<filtering>true</filtering>
