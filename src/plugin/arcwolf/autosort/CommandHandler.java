@@ -512,7 +512,7 @@ public class CommandHandler {
                     sender.sendMessage(ChatColor.YELLOW + "AutoSort custom groups reloaded.");
                     plugin.loadInventoryBlocks();
                     sender.sendMessage(ChatColor.YELLOW + "AutoSort inventory block list reloaded.");
-                    plugin.loadVersion5Save();
+                    plugin.loadDatabase();
                     sender.sendMessage(ChatColor.YELLOW + "AutoSort database reloaded.");
                     sender.sendMessage(ChatColor.GREEN + "AutoSort reload finished successfully.");
                 } catch (Exception e) {

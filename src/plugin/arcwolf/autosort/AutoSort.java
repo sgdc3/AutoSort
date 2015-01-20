@@ -125,7 +125,7 @@ public class AutoSort extends JavaPlugin {
         getPermissionsPlugin();
         loadCustomGroups();
         loadInventoryBlocks();
-        loadVersion5Save();
+        loadDatabase();
 
         pm.registerEvents(asListener, this);
         scheduler.scheduleSyncRepeatingTask(this, new SortTask(this), 5L, 10L);
@@ -394,7 +394,7 @@ public class AutoSort extends JavaPlugin {
         return namesToUUID;
     }
 
-    public void loadVersion5Save() {
+    public void loadDatabase() {
         int version = getCustomConfig().getInt("version", 5);
         if (version == 5) {
             LOGGER.info(pluginName + ": One moment, converting Version 5 database to Version 6 UUID database.");

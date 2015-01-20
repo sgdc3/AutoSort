@@ -53,7 +53,7 @@ public class SortNetwork {
      * @param netName
      * @param world
      */
-    
+
     public SortNetwork(UUID owner, String netName, String world) {
         this.owner = owner;
         this.netName = netName;
@@ -108,7 +108,7 @@ public class SortNetwork {
                         boolean ignoreData = true;
                         if (AutoSort.customMatGroups.containsKey(chest.signText)) {
                             for(ItemStack i : AutoSort.customMatGroups.get(chest.signText)) {
-                                if (i.getData().getData() > 0) {
+                                if (i != null && i.getDurability() > 0) {
                                     ignoreData = false;
                                 }
                             }
