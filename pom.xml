@@ -6,45 +6,19 @@
     <name>AutoSort</name>
     <url>http://dev.bukkit.org/bukkit-plugins/autosort/</url>
 
+    <!-- for reference
 	<scm>
 	    <connection>scm:git:ssh://git@bitbucket.org/arcwolf/autosort.git</connection>
 	    <developerConnection>scm:git:ssh://git@bitbucket.org/arcwolf/autosort.git</developerConnection>
 	    <url>https://bitbucket.org/arcwolf/autosort.git</url>
 	</scm>  
-
-     <pluginRepositories>
-          <pluginRepository>
-               <id>synergian-repo</id>
-               <url>https://raw.github.com/synergian/wagon-git/releases</url>
-          </pluginRepository>
-     </pluginRepositories>
- 
-     <distributionManagement>
-          <repository>
-               <id>autosort</id>
-               <name>AutoSort</name>
-               <url>git:releases://git@bitbucket.org:arcwolf/autosort.git</url>
-          </repository>
-     </distributionManagement>
-  
-    <repositories>
+     -->
+     
+     <repositories>
 		<repository>
 			<id>bukkit-repo</id>
 			<url>http://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
 		</repository>
-          
-          <repository>
-               <id>your-repo-id</id>
-               <name>Your Repo Name</name>
-               <releases>
-                    <enabled>true</enabled>
-               </releases>
-               <snapshots>
-                    <enabled>false</enabled>
-               </snapshots>
-               <url>https://api.bitbucket.org/1.0/repositories/arcwolf/autosort/raw/master</url>
-          </repository>
-          
 	</repositories>
 
 	<dependencies>
@@ -100,13 +74,6 @@
 	</dependencies>
 
 	<build>
-          <extensions>
-               <extension>
-                    <groupId>ar.com.synergian</groupId>
-                    <artifactId>wagon-git</artifactId>
-                    <version>0.2.3</version>
-               </extension>
-          </extensions>
           <pluginManagement>
                <plugins>
                     <plugin>
@@ -120,7 +87,6 @@
                          </configuration>
                     </plugin>	
                </plugins>
-               
           </pluginManagement>
 		<defaultGoal>clean install</defaultGoal>
 		<sourceDirectory>src/</sourceDirectory>
