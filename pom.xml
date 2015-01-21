@@ -12,11 +12,49 @@
 	    <url>https://bitbucket.org/arcwolf/autosort.git</url>
 	</scm>  
 
+     <pluginRepositories>
+          <pluginRepository>
+               <id>synergian-repo</id>
+               <url>https://raw.github.com/synergian/wagon-git/releases</url>
+          </pluginRepository>
+     </pluginRepositories>
+  
+     <build>
+          <extensions>
+               <extension>
+                    <groupId>ar.com.synergian</groupId>
+                    <artifactId>wagon-git</artifactId>
+                    <version>0.2.3</version>
+               </extension>
+          </extensions>
+     </build>
+  
+     <distributionManagement>
+          <repository>
+               <id>autosort</id>
+               <name>AutoSort</name>
+               <url>git:releases://git@bitbucket.org:arcwolf/autosort.git</url>
+          </repository>
+     </distributionManagement>
+  
     <repositories>
 		<repository>
 			<id>bukkit-repo</id>
 			<url>http://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
 		</repository>
+          
+          <repository>
+               <id>your-repo-id</id>
+               <name>Your Repo Name</name>
+               <releases>
+                    <enabled>true</enabled>
+               </releases>
+               <snapshots>
+                    <enabled>false</enabled>
+               </snapshots>
+               <url>https://api.bitbucket.org/1.0/repositories/arcwolf/autosort/raw/master</url>
+          </repository>
+          
 	</repositories>
 
 	<dependencies>
