@@ -6,6 +6,12 @@
     <name>AutoSort</name>
     <url>http://dev.bukkit.org/bukkit-plugins/autosort/</url>
 
+	<scm>
+	    <connection>scm:git:ssh://git@bitbucket.org/arcwolf/autosort.git</connection>
+	    <developerConnection>scm:git:ssh://git@bitbucket.org/arcwolf/autosort.git</developerConnection>
+	    <url>https://bitbucket.org/arcwolf/autosort.git</url>
+	</scm>  
+
     <repositories>
 		<repository>
 			<id>bukkit-repo</id>
