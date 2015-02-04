@@ -1,8 +1,11 @@
 package plugin.arcwolf.autosort;
 
+import java.util.UUID;
+
 public class ProxExcep {
 
-    private String owner, network;
+    private UUID owner;
+    String network;
     private int distance;
 
     /**
@@ -11,7 +14,7 @@ public class ProxExcep {
      * @param network
      * @param distance
      */
-    public ProxExcep(String owner, String network, int distance) {
+    public ProxExcep(UUID owner, String network, int distance) {
         this.owner = owner;
         this.network = network;
         this.distance = distance;
@@ -20,7 +23,7 @@ public class ProxExcep {
     /**
      * @return the owner
      */
-    public String getOwner() {
+    public UUID getOwner() {
         return owner;
     }
 

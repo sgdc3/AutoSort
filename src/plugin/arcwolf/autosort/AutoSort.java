@@ -45,6 +45,8 @@ import plugin.arcwolf.autosort.Task.CleanupTask;
 import plugin.arcwolf.autosort.Task.SortTask;
 import ru.tehkode.permissions.bukkit.PermissionsEx;
 
+import com.griefcraft.lwc.LWC;
+import com.griefcraft.lwc.LWCPlugin;
 import com.nijikokun.bukkit.Permissions.Permissions;
 
 import de.bananaco.bpermissions.api.ApiLayer;
@@ -77,7 +79,7 @@ public class AutoSort extends JavaPlugin {
     public Map<InventoryBlock, InventoryBlock> withdrawBlocks = new HashMap<InventoryBlock, InventoryBlock>();
 
     public static ConcurrentHashMap<String, List<ItemStack>> customMatGroups = new ConcurrentHashMap<String, List<ItemStack>>();
-    public static Map<String, ProxExcep> proximities = new HashMap<String, ProxExcep>();
+    public static Map<UUID, ProxExcep> proximities = new HashMap<UUID, ProxExcep>();
     public static int defaultProx = 0;
     public static boolean bkError = false;
     public boolean UUIDLoaded = false;
@@ -104,6 +106,7 @@ public class AutoSort extends JavaPlugin {
     private Permissions permissionsPlugin;
     private PermissionsEx permissionsExPlugin;
     private de.bananaco.bpermissions.imp.Permissions bPermissions;
+    private LWC lwc;
 
     private boolean permissionsEr = false;
     private boolean permissionsSet = false;
@@ -126,13 +129,11 @@ public class AutoSort extends JavaPlugin {
         loadCustomGroups();
         loadInventoryBlocks();
         loadDatabase();
+        checkLWC();
 
         pm.registerEvents(asListener, this);
         scheduler.scheduleSyncRepeatingTask(this, new SortTask(this), 5L, 10L);
         scheduler.scheduleSyncRepeatingTask(this, new CleanupTask(this), 12000L, 36000L);
-
-        getConfig().options().copyDefaults(true);
-        saveConfig();
     }
 
     public void onDisable() {
@@ -161,6 +162,17 @@ public class AutoSort extends JavaPlugin {
             });
             return true;
         }
+    }
+
+    private void checkLWC() {
+        if (server.getPluginManager().getPlugin("LWC") != null) {
+            Plugin p = server.getPluginManager().getPlugin("LWC");
+            lwc = ((LWCPlugin) p).getLWC();
+        }
+    }
+
+    public boolean canAccessProtection(Player player, Block block) {
+        return lwc != null && lwc.canAccessProtection(player, block);
     }
 
     public boolean hasPermission(Player player, String permission) {
@@ -284,11 +296,17 @@ public class AutoSort extends JavaPlugin {
     }
 
     public void loadConfig() {
+        File configFile = new File(this.getDataFolder(), "config.yml");
+        File dataFolder = this.getDataFolder();
+        if (!dataFolder.exists() || !configFile.exists()) {
+            getConfig().options().copyDefaults(true);
+            saveConfig();
+        }
         try {
-            PROFILE_URL = getConfig().getString("Profile_URL","https://api.mojang.com/profiles/minecraft");
+            PROFILE_URL = getConfig().getString("Profile_URL", "https://api.mojang.com/profiles/minecraft");
             ONLINE_UUID_CHECK = getConfig().getBoolean("online_UUID_Check", true);
-            httpConnectTimeout = getConfig().getInt("HTTPConnectTimeout",15000);
-            httpReadTimeout = getConfig().getInt("HTTPReadTimeout",15000);
+            httpConnectTimeout = getConfig().getInt("HTTPConnectTimeout", 15000);
+            httpReadTimeout = getConfig().getInt("HTTPReadTimeout", 15000);
             debug = getConfig().getInt("debug", 0);
             worldRestrict = getConfig().getBoolean("worldRestrict", false);
             emptiesFirst = getConfig().getBoolean("fill-emptier-first", false);
@@ -298,7 +316,8 @@ public class AutoSort extends JavaPlugin {
             for(String owner : proxSec.getKeys(false)) {
                 ConfigurationSection username = proxSec.getConfigurationSection(owner);
                 for(String network : username.getKeys(false)) {
-                    proximities.put(owner, new ProxExcep(owner, network, username.getInt(network)));
+                    UUID pId = UUID.fromString(owner);
+                    proximities.put(pId, new ProxExcep(pId, network, username.getInt(network)));
                 }
             }
         } catch (Exception e) {

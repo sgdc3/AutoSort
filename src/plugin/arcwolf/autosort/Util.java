@@ -3,11 +3,13 @@ package plugin.arcwolf.autosort;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -18,10 +20,10 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
+import plugin.arcwolf.autosort.Network.SortChest;
+
 import com.bergerkiller.bukkit.common.conversion.Conversion;
 import com.bergerkiller.bukkit.common.reflection.classes.TileEntityRef;
-
-import plugin.arcwolf.autosort.Network.SortChest;
 
 public class Util {
 
@@ -31,10 +33,17 @@ public class Util {
         Util.plugin = plugin;
     }
 
+    public static String getName(UUID pId) {
+        OfflinePlayer op = plugin.getServer().getOfflinePlayer(pId);
+        if (op != null) return op.getName();
+        return "unknown";
+    }
+
     /**
      * Will find the exact player and is case sensitive
      * 
-     * @param name - The players name
+     * @param name
+     *            - The players name
      * @return Player object or null if not found
      */
     @SuppressWarnings("deprecation")
@@ -44,7 +53,7 @@ public class Util {
         }
         return null;
     }
-    
+
     public boolean isValidInventoryBlock(Block block) {
         return isValidInventoryBlock(null, block, false);
     }
@@ -101,7 +110,7 @@ public class Util {
             return false;
         }
     }
-    
+
     public static ItemStack parseMaterialID(String str) {
         if (str != null) {
             if (str.contains(":")) {

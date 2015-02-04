@@ -38,7 +38,7 @@ public class CommandHandler {
         Player player = (Player) sender;
         UUID ownerUUID = player.getUniqueId();
         if (commandName.equalsIgnoreCase("autosort")) {
-            if (!plugin.hasPermission(player, "autosort.use")) {
+            if (!plugin.hasPermission(player, "autosort.autosort")) {
                 sender.sendMessage(ChatColor.RED + "Sorry you do not have permission for " + ChatColor.YELLOW + commandName + ChatColor.RED + " command.");
                 return;
             }
@@ -72,7 +72,7 @@ public class CommandHandler {
             }
         }
         else if (commandName.equalsIgnoreCase("autosortall")) {
-            if (!plugin.hasPermission(player, "autosort.use")) {
+            if (!plugin.hasPermission(player, "autosort.autosort")) {
                 sender.sendMessage(ChatColor.RED + "Sorry you do not have permission for " + ChatColor.YELLOW + commandName + ChatColor.RED + " command.");
                 return;
             }

@@ -8,9 +8,9 @@ fill-emptier-first: false
 keep-priority-sorted: false
 proximity: 0
 proximity-exceptions:
-  exampleUser: 
+  069a79f4-44e9-4726-a5be-fca90e38aaf5: 
     exampleNetwork: 20
-  anotherExampleUser: 
+  61699b2e-d327-4a01-9f1e-0ea8c3f06bc6: 
     anotherNetworkExample: 150
 inventoryBlocks:
   DEPOSIT:
