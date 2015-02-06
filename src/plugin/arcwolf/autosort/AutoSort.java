@@ -172,23 +172,28 @@ public class AutoSort extends JavaPlugin {
     }
 
     public boolean canAccessProtection(Player player, Block block) {
-        return lwc != null && lwc.canAccessProtection(player, block);
+        if (lwc == null)
+            return true;
+        else
+            return lwc.canAccessProtection(player, block);
     }
 
     public boolean hasPermission(Player player, String permission) {
-        if (debug == 1) { // For use with permissions debugging
-            getPermissionsPlugin();
+        getPermissionsPlugin();
+        if (debug == 1) {
             if (vaultPerms != null) {
                 String pName = player.getName();
                 String gName = vaultPerms.getPrimaryGroup(player);
-                Boolean permissions = vaultPerms.has(player, permission);
+                //Boolean permissions = vaultPerms.has(player, permission);
+                boolean permissions = player.hasPermission(permission);
                 LOGGER.info("Vault permissions, group for '" + pName + "' = " + gName);
                 LOGGER.info("Permission for " + permission + " is " + permissions);
             }
             else if (groupManager != null) {
                 String pName = player.getName();
                 String gName = groupManager.getWorldsHolder().getWorldData(player.getWorld().getName()).getPermissionsHandler().getGroup(player.getName());
-                Boolean permissions = groupManager.getWorldsHolder().getWorldPermissions(player).has(player, permission);
+                //Boolean permissions = groupManager.getWorldsHolder().getWorldPermissions(player).has(player, permission);
+                boolean permissions = player.hasPermission(permission);
                 LOGGER.info("group for '" + pName + "' = " + gName);
                 LOGGER.info("Permission for " + permission + " is " + permissions);
                 LOGGER.info("");
@@ -198,7 +203,8 @@ public class AutoSort extends JavaPlugin {
                 String pName = player.getName();
                 String wName = player.getWorld().getName();
                 String gName = Permissions.Security.getGroup(wName, pName);
-                Boolean permissions = Permissions.Security.permission(player, permission);
+                //Boolean permissions = Permissions.Security.permission(player, permission);
+                boolean permissions = player.hasPermission(permission);
                 LOGGER.info("Niji permissions, group for '" + pName + "' = " + gName);
                 LOGGER.info("Permission for " + permission + " is " + permissions);
             }
@@ -210,7 +216,8 @@ public class AutoSort extends JavaPlugin {
                 for(String groups : gNameA) {
                     gName.append(groups + " ");
                 }
-                Boolean permissions = PermissionsEx.getPermissionManager().has(player, permission);
+                //Boolean permissions = PermissionsEx.getPermissionManager().has(player, permission);
+                boolean permissions = player.hasPermission(permission);
                 LOGGER.info("PermissionsEx permissions, group for '" + pName + "' = " + gName.toString());
                 LOGGER.info("Permission for " + permission + " is " + permissions);
             }
@@ -222,7 +229,8 @@ public class AutoSort extends JavaPlugin {
                 for(String groups : gNameA) {
                     gName.append(groups + " ");
                 }
-                Boolean permissions = bPermissions.has(player, permission);
+                //Boolean permissions = bPermissions.has(player, permission);
+                boolean permissions = player.hasPermission(permission);
                 LOGGER.info("bPermissions, group for '" + pName + "' = " + gName);
                 LOGGER.info("bPermission for " + permission + " is " + permissions);
             }
@@ -235,7 +243,7 @@ public class AutoSort extends JavaPlugin {
             else {
                 LOGGER.info("Unknown permissions plugin " + permission + " " + player.hasPermission(permission));
             }
-        }// -- End Debug permissions hooks --
+        }
         return player.isOp() || player.hasPermission(permission);
     }
 

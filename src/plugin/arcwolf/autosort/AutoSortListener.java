@@ -363,7 +363,7 @@ public class AutoSortListener implements Listener {
                 }
             }
             else if (lines[0].startsWith("*")) {
-                if (event.getPlayer().hasPermission("autosort.use.deposit")) {
+                if (plugin.hasPermission(player, "autosort.use.deposit")) {
                     String mat1 = lines[1].toUpperCase();
                     String mat2 = lines[2].toUpperCase();
 

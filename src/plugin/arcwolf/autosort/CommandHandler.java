@@ -70,6 +70,11 @@ public class CommandHandler {
                     return;
                 }
             }
+            else {
+                sender.sendMessage(ChatColor.RED + "Incorrect command arguments");
+                sender.sendMessage("Try " + ChatColor.YELLOW + " /autosort <networkName>");
+                return;
+            }
         }
         else if (commandName.equalsIgnoreCase("autosortall")) {
             if (!plugin.hasPermission(player, "autosort.autosort")) {
@@ -105,6 +110,11 @@ public class CommandHandler {
                     return;
                 }
             }
+            else {
+                sender.sendMessage(ChatColor.RED + "Incorrect command arguments");
+                sender.sendMessage("Try " + ChatColor.YELLOW + " /autosortall <networkName>");
+                return;
+            }
         }
         else if (commandName.equalsIgnoreCase("asreload")) {
             if (!plugin.hasPermission(player, "autosort.reload")) {
@@ -138,6 +148,11 @@ public class CommandHandler {
                 plugin.saveConfig();
                 AutoSort.customMatGroups.put(groupName, matList);
                 sender.sendMessage(ChatColor.GREEN + "AutoSort group added.");
+                return;
+            }
+            else {
+                sender.sendMessage(ChatColor.RED + "Incorrect command arguments");
+                sender.sendMessage("Try " + ChatColor.YELLOW + " /addasgroup <groupName>");
                 return;
             }
         }
@@ -189,6 +204,11 @@ public class CommandHandler {
                 }
                 return;
             }
+            else {
+                sender.sendMessage(ChatColor.RED + "Incorrect command arguments");
+                sender.sendMessage("Try " + ChatColor.YELLOW + " /modasgroup <groupName>");
+                return;
+            }
         }
         else if (commandName.equalsIgnoreCase("delasgroup")) {
             if (!plugin.hasPermission(player, "autosort.delasgroup")) {
@@ -207,6 +227,11 @@ public class CommandHandler {
                 else {
                     sender.sendMessage(ChatColor.RED + "That group does not exist!");
                 }
+                return;
+            }
+            else {
+                sender.sendMessage(ChatColor.RED + "Incorrect command arguments");
+                sender.sendMessage("Try " + ChatColor.YELLOW + " /delasgroup <groupName>");
                 return;
             }
         }
@@ -429,6 +454,11 @@ public class CommandHandler {
                 sender.sendMessage(ChatColor.RED + "Sorry you do not have permission for " + ChatColor.YELLOW + commandName + ChatColor.RED + " command.");
                 return;
             }
+            if (args.length < 1) {
+                sender.sendMessage(ChatColor.RED + "Incorrect command arguments");
+                sender.sendMessage("Try " + ChatColor.YELLOW + " /asremnet <networkName>");
+                return;
+            }
             // /asremnet <OwnerName> <networkName>
             String ownerName = args[0];
             UUID ownerId = getPlayerUUID(args[0], sender);
@@ -476,6 +506,11 @@ public class CommandHandler {
                     return;
                 }
             }
+        }
+        else {
+            sender.sendMessage(ChatColor.RED + "Incorrect command arguments");
+            sender.sendMessage("Try " + ChatColor.YELLOW + " /aswithdraw <networkName>");
+            return;
         }
     }
 
