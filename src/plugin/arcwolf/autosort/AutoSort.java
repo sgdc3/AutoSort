@@ -1,6 +1,7 @@
 package plugin.arcwolf.autosort;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -17,6 +18,7 @@ import java.util.logging.Logger;
 import net.milkbowl.vault.permission.Permission;
 
 import org.anjocaido.groupmanager.GroupManager;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Server;
@@ -26,6 +28,7 @@ import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Item;
@@ -128,7 +131,14 @@ public class AutoSort extends JavaPlugin {
         getPermissionsPlugin();
         loadCustomGroups();
         loadInventoryBlocks();
-        loadDatabase();
+        scheduler.runTaskLater(this, new Runnable() {
+
+            @Override
+            public void run() {
+                loadDatabase();
+                LOGGER.info(pluginName + ": Autosort Database Loaded...");
+            }
+        }, 1);
         checkLWC();
 
         pm.registerEvents(asListener, this);
@@ -311,6 +321,7 @@ public class AutoSort extends JavaPlugin {
             saveConfig();
         }
         try {
+            refreshInternalConfig();
             PROFILE_URL = getConfig().getString("Profile_URL", "https://api.mojang.com/profiles/minecraft");
             ONLINE_UUID_CHECK = getConfig().getBoolean("online_UUID_Check", true);
             httpConnectTimeout = getConfig().getInt("HTTPConnectTimeout", 15000);
@@ -335,6 +346,7 @@ public class AutoSort extends JavaPlugin {
     }
 
     public void loadCustomGroups() {
+        refreshInternalConfig();
         ConfigurationSection groupSec = getConfig().getConfigurationSection("customGroups");
         Map<String, Object> groups = groupSec.getValues(false);
         for(String key : groups.keySet()) {
@@ -348,7 +360,17 @@ public class AutoSort extends JavaPlugin {
         }
     }
 
+    public void refreshInternalConfig(){
+        try {
+            getConfig().load(new File(this.getDataFolder(), "config.yml"));
+        } catch (Exception e) {
+            LOGGER.warning(pluginName + ": Error loading config. Try reloading the plugin.");
+            LOGGER.warning(pluginName + ": If that does not work, delete the config and try again.");
+        }
+    }
+    
     public void loadInventoryBlocks() {
+        refreshInternalConfig();
         ConfigurationSection ibSec = getConfig().getConfigurationSection("inventoryBlocks");
         Map<String, Object> sortType = ibSec.getValues(false);
         for(String key : sortType.keySet()) {
@@ -385,7 +407,7 @@ public class AutoSort extends JavaPlugin {
             }
         }
     }
-
+    
     private Map<String, UUID> getDatabaseUUIDs() {
         Map<String, UUID> namesToUUID = new HashMap<String, UUID>();
         ConfigurationSection netsSec = getCustomConfig().getConfigurationSection("Owners");

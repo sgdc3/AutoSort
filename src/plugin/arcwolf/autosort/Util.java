@@ -139,7 +139,7 @@ public class Util {
                 return new ItemStack(Material.AIR);
             }
             else {
-                Material mat = Material.getMaterial(str);
+                Material mat = Material.getMaterial(str.toUpperCase());
                 if (mat != null) { return new ItemStack(mat, 1); }
             }
         }

@@ -152,7 +152,7 @@ public class CommandHandler {
             }
             else {
                 sender.sendMessage(ChatColor.RED + "Incorrect command arguments");
-                sender.sendMessage("Try " + ChatColor.YELLOW + " /addasgroup <groupName>");
+                sender.sendMessage("Try " + ChatColor.YELLOW + " /addasgroup <groupName> <itemID>");
                 return;
             }
         }
