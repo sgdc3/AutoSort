@@ -20,6 +20,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitScheduler;
 
 import plugin.arcwolf.autosort.Network.NetworkItem;
 import plugin.arcwolf.autosort.Network.SortChest;
@@ -28,9 +29,11 @@ import plugin.arcwolf.autosort.Network.SortNetwork;
 public class CommandHandler {
 
     private AutoSort plugin;
+    private BukkitScheduler scheduler;
 
     public CommandHandler(AutoSort plugin) {
         this.plugin = plugin;
+        scheduler = plugin.getServer().getScheduler();
     }
 
     public void inGame(CommandSender sender, Command cmd, String commandLabel, String[] args) {
@@ -825,17 +828,23 @@ public class CommandHandler {
         return true;
     }
 
-    private void updateSign(Block sign, String netName, String whoDeleted) {
-        if (sign.getType().equals(Material.WALL_SIGN) || sign.getType().equals(Material.SIGN_POST)) {
-            BlockState sgn = sign.getState();
-            Sign s = (Sign) sign.getState();
-            s.setLine(0, "§e[ " + netName + " ]");
-            s.setLine(1, "§edeleted by");
-            s.setLine(2, "§e" + whoDeleted);
-            s.setLine(3, "");
-            sgn.update(true);
-            s.update(true);
-        }
+    private void updateSign(final Block sign, final String netName, final String whoDeleted) {
+        scheduler.runTask(plugin, new Runnable() {
+
+            @Override
+            public void run() {
+                if (sign.getType().equals(Material.WALL_SIGN) || sign.getType().equals(Material.SIGN_POST)) {
+                    BlockState sgn = sign.getState();
+                    Sign s = (Sign) sign.getState();
+                    s.setLine(0, "§e[ " + netName + " ]");
+                    s.setLine(1, "§edeleted by");
+                    s.setLine(2, "§e" + whoDeleted);
+                    s.setLine(3, "");
+                    sgn.update(true);
+                    s.update(true);
+                }
+            }
+        });
     }
 
     private String getTrueMaterial(ItemStack item) {
@@ -975,21 +984,27 @@ public class CommandHandler {
         return item.getType().name();
     }
 
-    private void sortPlayerInventory(int startIndex, CommandSender sender, String owner, String netName, SortNetwork net) {
-        Player player = (Player) sender;
-        Inventory inv = player.getInventory();
-        ItemStack[] contents = inv.getContents();
-        ItemStack is;
-        for(int i = startIndex; i < contents.length; i++) {
-            is = contents[i];
-            if (is != null) {
-                if (net.sortItem(is)) {
-                    contents[i] = null;
+    private void sortPlayerInventory(final int startIndex, final CommandSender sender, final String owner, final String netName, final SortNetwork net) {
+        scheduler.runTask(plugin, new Runnable() {
+
+            @Override
+            public void run() {
+                Player player = (Player) sender;
+                Inventory inv = player.getInventory();
+                ItemStack[] contents = inv.getContents();
+                ItemStack is;
+                for(int i = startIndex; i < contents.length; i++) {
+                    is = contents[i];
+                    if (is != null) {
+                        if (net.sortItem(is)) {
+                            contents[i] = null;
+                        }
+                    }
                 }
+                inv.setContents(contents);
+                sender.sendMessage(ChatColor.GREEN + "Inventory sorted into " + ChatColor.YELLOW + netName + ChatColor.WHITE + " owned by " + ChatColor.YELLOW + owner);
             }
-        }
-        inv.setContents(contents);
-        sender.sendMessage(ChatColor.GREEN + "Inventory sorted into " + ChatColor.YELLOW + netName + ChatColor.WHITE + " owned by " + ChatColor.YELLOW + owner);
+        });
     }
 
     private boolean checkIfInUse(CommandSender player, SortNetwork network) {
@@ -1009,8 +1024,8 @@ public class CommandHandler {
         return false;
     }
 
-    private boolean doCommandWithdraw(Player player, SortNetwork network, UUID owner, String netName) {
-        CustomPlayer settings = CustomPlayer.getSettings(player);
+    private boolean doCommandWithdraw(final Player player, SortNetwork network, UUID owner, final String netName) {
+        final CustomPlayer settings = CustomPlayer.getSettings(player);
         if (checkIfInUse(player, network)) return true;
         plugin.asListener.chestLock.put(player.getName(), network);
         settings.netName = netName;
@@ -1018,16 +1033,22 @@ public class CommandHandler {
         settings.playerName = player.getName();
         settings.sortNetwork = network;
         settings.withdrawInventory = Bukkit.createInventory(null, 54, netName + " network inventory");
-        if (plugin.util.updateInventoryList(player, settings)) {
-            Collections.sort(settings.inventory, new StringComparator());
-            plugin.util.updateChestInventory(player, settings);
-            player.openInventory(settings.withdrawInventory);
-        }
-        else {
-            player.sendMessage("The network - " + ChatColor.YELLOW + netName + ChatColor.WHITE + " - is empty.");
-            plugin.asListener.chestLock.remove(player.getName());
-            settings.clearPlayer();
-        }
+        scheduler.runTask(plugin, new Runnable() {
+
+            @Override
+            public void run() {
+                if (plugin.util.updateInventoryList(player, settings)) {
+                    Collections.sort(settings.inventory, new StringComparator());
+                    plugin.util.updateChestInventory(player, settings);
+                    player.openInventory(settings.withdrawInventory);
+                }
+                else {
+                    player.sendMessage("The network - " + ChatColor.YELLOW + netName + ChatColor.WHITE + " - is empty.");
+                    plugin.asListener.chestLock.remove(player.getName());
+                    settings.clearPlayer();
+                }
+            }
+        });
         return true;
     }
 

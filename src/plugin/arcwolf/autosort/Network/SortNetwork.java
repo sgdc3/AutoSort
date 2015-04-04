@@ -128,6 +128,7 @@ public class SortNetwork {
             }
             for(SortChest chest : sortChests) { // Sorts MISC items into MISC group. References to Material AIR are used for MISC in mat group
                 if (chest.priority == priority) {
+                    if (chest.matList.get(0) == null) continue;
                     if (chest.matList.size() == 1 && chest.matList.get(0).getType().equals(Material.AIR)) {
                         if (moveItemToChest(item, chest)) return true;
                     }

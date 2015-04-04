@@ -6,11 +6,9 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -881,6 +879,8 @@ public class AutoSortListener implements Listener {
                     case WEST:
                         z++;
                         break;
+                    default:
+                        break;
                 }
             }
             if (dir.equalsIgnoreCase("R")) {
@@ -896,6 +896,8 @@ public class AutoSortListener implements Listener {
                         break;
                     case WEST:
                         z--;
+                        break;
+                    default:
                         break;
                 }
             }
@@ -913,6 +915,8 @@ public class AutoSortListener implements Listener {
                     case WEST:
                         x--;
                         break;
+                    default:
+                        break;
                 }
             }
             if (dir.equalsIgnoreCase("B")) {
@@ -928,6 +932,8 @@ public class AutoSortListener implements Listener {
                         break;
                     case WEST:
                         x++;
+                        break;
+                    default:
                         break;
                 }
             }
