@@ -1,0 +1,42 @@
+debug: 0
+Profile_URL: https://api.mojang.com/profiles/minecraft
+online_UUID_Check: true
+HTTPConnectTimeout: 15000
+HTTPReadTimeout: 15000
+worldRestrict: false
+fill-emptier-first: false
+keep-priority-sorted: false
+proximity: 0
+proximity-exceptions:
+  069a79f4-44e9-4726-a5be-fca90e38aaf5: 
+    exampleNetwork: 20
+  61699b2e-d327-4a01-9f1e-0ea8c3f06bc6: 
+    anotherNetworkExample: 150
+inventoryBlocks:
+  DEPOSIT:
+  - 54
+  - 61
+  - 62
+  - 146
+  - 154
+  WITHDRAW:
+  - 54
+  - 146
+  SORT:
+  - 23
+  - 54
+  - 146
+  - 154
+  - 158
+customGroups:
+  IRON_TOOLS:
+  - 256
+  - 257
+  - 258
+  BLUE_WOOL:
+  - '35:3'
+  - '35:9'
+  - '35:11'
+  LAVAFURNACE:
+  - 14
+  

@@ -1,0 +1,100 @@
+name: AutoSort
+authors: [ArcWolf, TheJuggernaut0]
+main: plugin.arcwolf.autosort.AutoSort
+version: ${project.version}
+website: http://dev.bukkit.org/bukkit-plugins/autosort/
+description: A chest inventory sorting plugin. Originally created by TheJuggernaut0. Updated / maintained by ArcWolf.
+commands:
+  autosort:
+    description: Sort your entire inventory except your inventory bar
+    permission: autosort.autosort
+    usage: /autosort [networkName]
+  autosortall:
+    description: Sort your entire inventory
+    permission: autosort.autosort
+    usage: /autosortall [networkName]
+  asreload:
+    description: Reload AutoSort
+    permission: autosort.reload
+    usage: /asreload
+  addasgroup:
+    description: Add a custom AutoSort material group
+    permission: autosort.addasgroup
+    usage: /addasgroup [groupName] [materialIDs...]
+  modasgroup:
+    description: Modify an existing AutoSort material group
+    permission: autosort.modasgroup
+    usage: /modasgroup [groupName] [materialIDS...]
+  delasgroup:
+    description: Deletes an AutoSort material group
+    permission: autosort.delasgroup
+    usage: /delasgroup [groupName]
+  ascleanup:
+    description: Cleanup AutoSort networks
+    permission: autosort.ascleanup
+    usage: /ascleanup
+  addtonet:
+    description: Add players to an AutoSort network
+    permission: autosort.addtonet
+    usage: /addtonet [netName] [players...]
+  listasgroups:
+    description: List all AutoSort material groups defined on this server
+    permission: autosort.listasgroups
+    usage: /listasgroups
+  listasmembers:
+    description: List all Members of a Autosort Network
+    permission: autosort.listasmembers
+    usage: /listasmembers [Owner] [netName]
+  remfromnet:
+    description: Removes players from a AutoSort network
+    permission: autosort.remfromnet
+    usage: /remfromnet [netName] [players...]
+  asremnet:
+    description: Removes a network 
+    permission: autosort.remnet
+    usage: /asremnet <ownerName> <networkName>
+  aswithdraw:
+    description: Withdraw from a network
+    permission: autosort.use.withdrawcommand
+    usage: /aswithdraw <ownerName> <networkName>
+permissions:
+  autosort.*:
+    default: op
+    children:
+      autosort.use: true
+      autosort.create: true
+      autosort.override: true
+      autosort.autosort: true
+      autosort.reload: true
+      autosort.addasgroup: true
+      autosort.modasgroup: true
+      autosort.delasgroup: true
+      autosort.ascleanup: true
+      autosort.addtonet: true
+      autosort.remfromnet: true
+      autosort.ignoreproximity: true
+      autosort.listasgroups: true
+      autosort.remnet: true
+      autosort.create.public: true
+      autosort.listasmembers: true   
+  autosort.common: 
+    default: false
+    children:
+      autosort.use: true
+      autosort.create: true
+      autosort.autosort: true
+      autosort.addtonet: true
+      autosort.remfromnet: true
+      autosort.listasgroups: true
+  autosort.addasgroup:
+    default: false
+    children:
+      autosort.modasgroup: true
+      autosort.delasgroup: true
+  autosort.use:
+    default: false
+    children:
+      autosort.use.deposit: true
+      autosort.use.withdraw: true
+      autosort.use.drop: true
+      autosort.use.withdrawcommand: true
