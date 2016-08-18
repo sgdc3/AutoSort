@@ -16,7 +16,6 @@ import java.util.logging.Logger;
 
 import net.milkbowl.vault.permission.Permission;
 
-import org.anjocaido.groupmanager.GroupManager;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Server;
@@ -43,10 +42,6 @@ import plugin.arcwolf.autosort.Network.SortChest;
 import plugin.arcwolf.autosort.Network.SortNetwork;
 import plugin.arcwolf.autosort.Task.CleanupTask;
 import plugin.arcwolf.autosort.Task.SortTask;
-import ru.tehkode.permissions.bukkit.PermissionsEx;
-
-import de.bananaco.bpermissions.api.ApiLayer;
-import de.bananaco.bpermissions.api.CalculableType;
 
 /*
  * Debug codes:
@@ -97,15 +92,8 @@ public class AutoSort extends JavaPlugin {
     private CommandHandler commandHandler;
     public Util util;
 
-    private GroupManager groupManager;
-    private net.milkbowl.vault.permission.Permission vaultPerms;
-    // private Permissions permissionsPlugin;
-    private PermissionsEx permissionsExPlugin;
-    private de.bananaco.bpermissions.imp.Permissions bPermissions;
     // private LWC lwc;
 
-    private boolean permissionsEr = false;
-    private boolean permissionsSet = false;
     private static int debug = 0;
 
     public void onEnable() {
@@ -121,7 +109,6 @@ public class AutoSort extends JavaPlugin {
 
         loadConfig();
 
-        getPermissionsPlugin();
         loadCustomGroups();
         loadInventoryBlocks();
         scheduler.runTaskLater(this, new Runnable() {
@@ -188,133 +175,7 @@ public class AutoSort extends JavaPlugin {
     }
 
     public boolean hasPermission(Player player, String permission) {
-        getPermissionsPlugin();
-        if (debug == 1) {
-            if (vaultPerms != null) {
-                String pName = player.getName();
-                String gName = vaultPerms.getPrimaryGroup(player);
-                //Boolean permissions = vaultPerms.has(player, permission);
-                boolean permissions = player.hasPermission(permission);
-                LOGGER.info("Vault permissions, group for '" + pName + "' = " + gName);
-                LOGGER.info("Permission for " + permission + " is " + permissions);
-            }
-            else if (groupManager != null) {
-                String pName = player.getName();
-                String gName = groupManager.getWorldsHolder().getWorldData(player.getWorld().getName()).getPermissionsHandler().getGroup(player.getName());
-                //Boolean permissions = groupManager.getWorldsHolder().getWorldPermissions(player).has(player, permission);
-                boolean permissions = player.hasPermission(permission);
-                LOGGER.info("group for '" + pName + "' = " + gName);
-                LOGGER.info("Permission for " + permission + " is " + permissions);
-                LOGGER.info("");
-                LOGGER.info("permissions available to '" + pName + "' = " + groupManager.getWorldsHolder().getWorldData(player.getWorld().getName()).getGroup(gName).getPermissionList());
-            }
-            /*
-             * Deprecated!
-            else if (permissionsPlugin != null) {
-                String pName = player.getName();
-                String wName = player.getWorld().getName();
-                String gName = Permissions.Security.getGroup(wName, pName);
-                //Boolean permissions = Permissions.Security.permission(player, permission);
-                boolean permissions = player.hasPermission(permission);
-                LOGGER.info("Niji permissions, group for '" + pName + "' = " + gName);
-                LOGGER.info("Permission for " + permission + " is " + permissions);
-            }
-            */
-            else if (permissionsExPlugin != null) {
-                String pName = player.getName();
-                String wName = player.getWorld().getName();
-                String[] gNameA = PermissionsEx.getUser(player).getGroupsNames(wName);
-                StringBuffer gName = new StringBuffer();
-                for(String groups : gNameA) {
-                    gName.append(groups + " ");
-                }
-                //Boolean permissions = PermissionsEx.getPermissionManager().has(player, permission);
-                boolean permissions = player.hasPermission(permission);
-                LOGGER.info("PermissionsEx permissions, group for '" + pName + "' = " + gName.toString());
-                LOGGER.info("Permission for " + permission + " is " + permissions);
-            }
-            else if (bPermissions != null) {
-                String pName = player.getName();
-                String wName = player.getWorld().getName();
-                String[] gNameA = ApiLayer.getGroups(wName, CalculableType.USER, pName);
-                StringBuffer gName = new StringBuffer();
-                for(String groups : gNameA) {
-                    gName.append(groups + " ");
-                }
-                //Boolean permissions = bPermissions.has(player, permission);
-                boolean permissions = player.hasPermission(permission);
-                LOGGER.info("bPermissions, group for '" + pName + "' = " + gName);
-                LOGGER.info("bPermission for " + permission + " is " + permissions);
-            }
-            else if (server.getPluginManager().getPlugin("PermissionsBukkit") != null) {
-                LOGGER.info("Bukkit Permissions " + permission + " " + player.hasPermission(permission));
-            }
-            else if (permissionsEr && (player.isOp() || player.hasPermission(permission))) {
-                LOGGER.info("Unknown permissions plugin " + permission + " " + player.hasPermission(permission));
-            }
-            else {
-                LOGGER.info("Unknown permissions plugin " + permission + " " + player.hasPermission(permission));
-            }
-        }
         return player.isOp() || player.hasPermission(permission);
-    }
-
-    // permissions plugin debug information
-    private void getPermissionsPlugin() {
-        if (server.getPluginManager().getPlugin("Vault") != null) {
-            RegisteredServiceProvider<Permission> rsp = getServer().getServicesManager().getRegistration(Permission.class);
-            if (!permissionsSet) {
-                LOGGER.info(pluginName + ": Vault detected, permissions enabled...");
-                permissionsSet = true;
-            }
-            vaultPerms = rsp.getProvider();
-        }
-        else if (server.getPluginManager().getPlugin("GroupManager") != null) {
-            Plugin p = server.getPluginManager().getPlugin("GroupManager");
-            if (!permissionsSet) {
-                LOGGER.info(pluginName + ": GroupManager detected, permissions enabled...");
-                permissionsSet = true;
-            }
-            groupManager = (GroupManager) p;
-        }
-        /*
-        else if (server.getPluginManager().getPlugin("Permissions") != null) {
-            Plugin p = server.getPluginManager().getPlugin("Permissions");
-            if (!permissionsSet) {
-                LOGGER.info(pluginName + ": Permissions detected, permissions enabled...");
-                permissionsSet = true;
-            }
-            permissionsPlugin = (Permissions) p;
-        }
-        */
-        else if (server.getPluginManager().getPlugin("PermissionsBukkit") != null) {
-            if (!permissionsSet) {
-                LOGGER.info(pluginName + ": Bukkit permissions detected, permissions enabled...");
-                permissionsSet = true;
-            }
-        }
-        else if (server.getPluginManager().getPlugin("PermissionsEx") != null) {
-            Plugin p = server.getPluginManager().getPlugin("PermissionsEx");
-            if (!permissionsSet) {
-                LOGGER.info(pluginName + ": PermissionsEx detected, permissions enabled...");
-                permissionsSet = true;
-            }
-            permissionsExPlugin = (PermissionsEx) p;
-        }
-        else if (server.getPluginManager().getPlugin("bPermissions") != null) {
-            Plugin p = server.getPluginManager().getPlugin("bPermissions");
-            if (!permissionsSet) {
-                LOGGER.info(pluginName + ": bPermissions detected, permissions enabled...");
-                permissionsSet = true;
-            }
-            bPermissions = (de.bananaco.bpermissions.imp.Permissions) p;
-        }
-        else {
-            if (!permissionsEr) {
-                LOGGER.info(pluginName + ": Unknown permissions detected, Using Generic Permissions...");
-                permissionsEr = true;
-            }
-        }
     }
 
     public void loadConfig() {
